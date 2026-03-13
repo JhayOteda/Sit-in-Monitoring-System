@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Source+Sans+3:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap');
 
 * {
     margin: 0;
@@ -6,14 +6,50 @@
     box-sizing: border-box;
 }
 
+:root {
+    --bg-start: #e7f2eb;
+    --bg-end: #d3e7db;
+    --nav-bg: #1f4f3c;
+    --nav-text: #edf7f2;
+    --card-bg: #ffffff;
+    --text-primary: #1f2f27;
+    --text-muted: #607367;
+    --border-soft: #d0dfd6;
+    --input-bg: #f5faf7;
+    --brand-1: #2f7a59;
+    --brand-2: #245f45;
+    --brand-1-strong: #2a6d4f;
+    --brand-2-strong: #1f543d;
+}
+
+.alert {
+    padding: 0.7rem 1rem;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.alert-error {
+    background: #fde8e8;
+    color: #a01a1a;
+    border: 1px solid #f5b7b7;
+}
+
+.alert-success {
+    background: #e6f4ea;
+    color: #155724;
+    border: 1px solid #b7dfbe;
+}
+
 body {
-    font-family: 'Source Sans 3', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Nunito Sans', sans-serif;
+    background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
     min-height: 100vh;
 }
 
 nav {
-    background: #1a3a6b;
+    background: var(--nav-bg);
     padding: 0 2rem;
     display: flex;
     align-items: center;
@@ -23,8 +59,8 @@ nav {
 }
 
 .nav-brand {
-    color: #fff;
-    font-family: 'Rajdhani', sans-serif;
+    color: var(--nav-text);
+    font-family: 'Merriweather', serif;
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -39,7 +75,7 @@ nav {
 
 .nav-links a,
 .nav-links button {
-    color: #e8edf5;
+    color: var(--nav-text);
     text-decoration: none;
     font-size: 0.9rem;
     padding: 0.35rem 0.7rem;
@@ -53,7 +89,7 @@ nav {
 
 .nav-links a:hover,
 .nav-links button:hover {
-    background: rgba(255,255,255,0.18);
+    background: rgba(255, 255, 255, 0.14);
 }
 
 .dropdown {
@@ -84,14 +120,14 @@ nav {
 
 .dropdown-menu a {
     display: block;
-    color: #333 !important;
+    color: var(--text-primary) !important;
     padding: 0.5rem 1rem;
     font-size: 0.88rem;
     cursor: pointer;
 }
 
 .dropdown-menu a:hover {
-    background: #f0f4ff;
+    background: #edf7f1;
 }
 
 .page-wrapper {
@@ -105,21 +141,21 @@ nav {
 .form-control {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-soft);
     border-radius: 8px;
     font-size: 0.95rem;
     font-family: inherit;
-    color: #333;
+    color: var(--text-primary);
     outline: none;
-    background: #f9f9f9;
+    background: var(--input-bg);
     cursor: text;
     transition: all 0.3s ease;
 }
 
 .form-control:focus {
-    border-color: #667eea;
+    border-color: var(--brand-1);
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 4px rgba(47, 122, 89, 0.15);
 }
 
 .form-control::placeholder {
@@ -129,7 +165,7 @@ nav {
 .form-label {
     display: block;
     font-size: 0.85rem;
-    color: #666;
+    color: var(--text-muted);
     margin-bottom: 0.5rem;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -140,7 +176,7 @@ nav {
 }
 
 .login-card {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 3rem;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
@@ -160,6 +196,36 @@ nav {
     }
 }
 
+.logo-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.logo-row img {
+    display: block;
+    margin: 0 auto;
+    height: 140px;
+    width: auto;
+    object-fit: contain;
+}
+
+.login-heading {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-family: 'Merriweather', serif;
+    letter-spacing: 0.02em;
+}
+
+.login-subheading {
+    text-align: center;
+    color: var(--text-muted);
+}
+
 .login-header {
     text-align: center;
     margin-bottom: 2rem;
@@ -174,24 +240,30 @@ nav {
 }
 
 .logo-section .logo {
-    height: 50px;
+    height: 64px;
     width: auto;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
+@media (max-width: 700px) {
+    .logo-section .logo {
+        height: 52px;
+    }
+}
+
 .login-title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #222;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Merriweather', serif;
     letter-spacing: 0.02em;
 }
 
 .login-subtitle {
     font-size: 0.95rem;
-    color: #888;
+    color: var(--text-muted);
     margin-bottom: 0;
 }
 
@@ -212,7 +284,7 @@ nav {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
-    color: #666;
+    color: var(--text-muted);
     cursor: pointer;
     user-select: none;
 }
@@ -221,26 +293,26 @@ nav {
     width: 16px;
     height: 16px;
     cursor: pointer;
-    accent-color: #667eea;
+    accent-color: var(--brand-1);
 }
 
 .forgot-link {
     font-size: 0.9rem;
-    color: #667eea;
+    color: var(--brand-1);
     text-decoration: none;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .forgot-link:hover {
-    color: #764ba2;
+    color: var(--brand-2);
     text-decoration: underline;
 }
 
 .btn-login {
     width: 100%;
     padding: 0.85rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -250,12 +322,13 @@ nav {
     cursor: pointer;
     margin-bottom: 1.2rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(47, 122, 89, 0.35);
 }
 
 .btn-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, var(--brand-1-strong) 0%, var(--brand-2-strong) 100%);
+    box-shadow: 0 6px 20px rgba(36, 95, 69, 0.45);
 }
 
 .btn-login:active {
@@ -263,18 +336,18 @@ nav {
 }
 
 .login-footer {
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--border-soft);
     padding-top: 1rem;
 }
 
 .register-prompt {
     text-align: center;
     font-size: 0.9rem;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .register-prompt .register-link {
-    color: #667eea;
+    color: var(--brand-1);
     text-decoration: none;
     font-weight: 700;
     cursor: pointer;
@@ -282,12 +355,12 @@ nav {
 }
 
 .register-prompt .register-link:hover {
-    color: #764ba2;
+    color: var(--brand-2);
     text-decoration: underline;
 }
 
 .register-card {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 2.5rem;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
@@ -301,7 +374,7 @@ nav {
     top: 1.5rem;
     left: 1.5rem;
     display: inline-block;
-    background: #dc3545;
+    background: #3f5e4f;
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -314,7 +387,7 @@ nav {
 }
 
 .register-card .back-btn:hover {
-    background: #b52a37;
+    background: #2f473b;
     transform: translateX(-2px);
 }
 
@@ -322,9 +395,9 @@ nav {
     text-align: center;
     font-size: 1.6rem;
     font-weight: 700;
-    color: #222;
+    color: var(--text-primary);
     margin-bottom: 1.5rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Merriweather', serif;
     letter-spacing: 0.03em;
 }
 
@@ -349,7 +422,7 @@ nav {
 .btn-register {
     margin-top: 1rem;
     padding: 0.75rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -358,12 +431,13 @@ nav {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(47, 122, 89, 0.35);
 }
 
 .btn-register:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, var(--brand-1-strong) 0%, var(--brand-2-strong) 100%);
+    box-shadow: 0 6px 20px rgba(36, 95, 69, 0.45);
 }
 
 @media (max-width: 700px) {
