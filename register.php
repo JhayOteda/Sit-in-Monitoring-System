@@ -143,11 +143,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <select class="form-control" name="course" required>
                                 <option value="" disabled <?= empty($_POST['course']) ? 'selected' : '' ?> hidden>Select
                                     Course</option>
-                                <option value="BSIT" <?= (($_POST['course'] ?? '') === 'BSIT') ? 'selected' : '' ?>>BSIT
+                                <option value="BSIT" <?= (($_POST['course'] ?? '') === 'BSIT') ? 'selected' : '' ?>>Bachelor of Science in Information Technology (BSIT)
                                 </option>
-                                <option value="BSCA" <?= (($_POST['course'] ?? '') === 'BSCA') ? 'selected' : '' ?>>BSCA
+                                <option value="BSCA" <?= (($_POST['course'] ?? '') === 'BSCA') ? 'selected' : '' ?>>Bachelor of Science in Customs Administration (BSCA)
                                 </option>
-                                <option value="BSCS" <?= (($_POST['course'] ?? '') === 'BSCS') ? 'selected' : '' ?>>BSCS
+                                <option value="BSCS" <?= (($_POST['course'] ?? '') === 'BSCS') ? 'selected' : '' ?>> Bachelor of Science in Computer Science (BSCS)
                                 </option>
                             </select>
                             <span class="form-label">Course</span>
