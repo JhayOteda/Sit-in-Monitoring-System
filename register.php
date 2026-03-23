@@ -82,7 +82,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <a href="#">Members</a>
                 </div>
             </li>
-            <li><a href="#">About</a></li>
             <li><a href="login.php">Login</a></li>
             <li><a href="Register.php">Register</a></li>
         </ul>
@@ -143,11 +142,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <select class="form-control" name="course" required>
                                 <option value="" disabled <?= empty($_POST['course']) ? 'selected' : '' ?> hidden>Select
                                     Course</option>
-                                <option value="BSIT" <?= (($_POST['course'] ?? '') === 'BSIT') ? 'selected' : '' ?>>Bachelor of Science in Information Technology (BSIT)
+                                <option value="BSIT" <?= (($_POST['course'] ?? '') === 'BSIT') ? 'selected' : '' ?>>
+                                    Bachelor of Science in Information Technology (BSIT)
                                 </option>
-                                <option value="BSCA" <?= (($_POST['course'] ?? '') === 'BSCA') ? 'selected' : '' ?>>Bachelor of Science in Customs Administration (BSCA)
+                                <option value="BSCA" <?= (($_POST['course'] ?? '') === 'BSCA') ? 'selected' : '' ?>>
+                                    Bachelor of Science in Customs Administration (BSCA)
                                 </option>
-                                <option value="BSCS" <?= (($_POST['course'] ?? '') === 'BSCS') ? 'selected' : '' ?>> Bachelor of Science in Computer Science (BSCS)
+                                <option value="BSCS" <?= (($_POST['course'] ?? '') === 'BSCS') ? 'selected' : '' ?>>
+                                    Bachelor of Science in Computer Science (BSCS)
                                 </option>
                             </select>
                             <span class="form-label">Course</span>
@@ -166,7 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 <option value="4" <?= (($_POST['course_level'] ?? '') === '4') ? 'selected' : '' ?>>4
                                 </option>
                             </select>
-                            <span class="form-label">Course Level *</span>
+                            <span class="form-label">Course Level</span>
                         </div>
 
                         <div class="form-group">

@@ -132,10 +132,10 @@ nav {
 
 .page-wrapper {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     min-height: calc(100vh - 48px);
-    padding: 2rem 1rem;
+    padding: 3rem 1rem 2rem 1rem;
 }
 
 .form-control {
@@ -203,6 +203,14 @@ nav {
     width: 100%;
 }
 
+.dashboard-container-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    max-width: 950px;
+    width: 100%;
+}
+
 .dashboard-header {
     background: #fff;
     border-radius: 10px;
@@ -214,9 +222,178 @@ nav {
 
 .dashboard-card {
     background: #fff;
-    border-radius: 10px;
-    padding: 2.5rem;
-    box-shadow: 0 8px 40px rgba(13, 34, 64, 0.14);
+    border-radius: 12px;
+    padding: 3rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.form-frame {
+    border-top: 5px solid var(--brand-1);
+    background: #fff;
+}
+
+/* Student Info Card (Wide) */
+.student-profile-wide {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 3rem;
+}
+
+.profile-avatar-formal {
+    width: 160px;
+    height: 160px;
+    border-radius: 12px;
+    background: #f5FAF7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 8px 25px rgba(47, 122, 89, 0.15);
+    border: 2px solid #e7f2eb;
+}
+
+.profile-avatar-formal svg {
+    width: 80px;
+    height: 80px;
+    fill: var(--brand-1);
+}
+
+.student-info-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 2rem;
+    align-content: start;
+}
+
+.info-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.info-cell label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.info-cell p {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    border-bottom: 1px solid #eef2f0;
+    padding-bottom: 0.5rem;
+}
+
+.session-cell p.session-badge {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.session-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    background: #fff3cd;
+    color: #856404;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    align-self: flex-start;
+}
+
+/* Announcements */
+.announcements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.announcement-item {
+    background: #f8faf9;
+    border-left: 4px solid var(--brand-1);
+    padding: 1.5rem;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.announcement-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.announcement-date {
+    font-size: 0.75rem;
+    color: #999;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+}
+
+.announcement-item h4 {
+    font-size: 0.95rem;
+    color: #0d2240;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    font-family: 'Merriweather', serif;
+}
+
+.announcement-item p {
+    font-size: 0.85rem;
+    color: #6b7a99;
+    line-height: 1.5;
+}
+
+/* Rules & Regulations */
+.rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.rule-item {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.rule-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rule-item h4 {
+    font-size: 0.95rem;
+    color: #0d2240;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-family: 'Merriweather', serif;
+}
+
+.rule-item ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.rule-item ul li {
+    font-size: 0.85rem;
+    color: #6b7a99;
+    padding-left: 1.2rem;
+    margin-bottom: 0.3rem;
+    position: relative;
+    line-height: 1.4;
+}
+
+.rule-item ul li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #2f7a59;
+    font-weight: bold;
 }
 
 .card-header {
@@ -231,7 +408,7 @@ nav {
 .card-header h3 {
     font-size: 1.4rem;
     font-family: 'Merriweather', serif;
-    color: #0d2240;
+    color: #0d2240;    
     margin: 0;
 }
 
@@ -375,6 +552,11 @@ nav {
 
     .dashboard-card {
         padding: 1.5rem;
+    }
+
+    .dashboard-container-3col {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
 }
 
@@ -648,3 +830,4 @@ nav {
         padding: 1.5rem;
     }
 }
+
