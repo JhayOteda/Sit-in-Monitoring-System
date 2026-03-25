@@ -11,18 +11,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($id_number) || empty($password)) {
         $error = "Please fill in all fields.";
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ?");
+        // Try to login from admin table first
+        $stmt = $pdo->prepare("SELECT * FROM admin WHERE id_number = ?");
         $stmt->execute([$id_number]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user && password_verify($password, $user["password"])) {
+        // If not found in admin table, try users table
+        if (!$user) {
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ?");
+            $stmt->execute([$id_number]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$user) {
+            $error = "Invalid ID number or password.";
+        } else if (!password_verify($password, $user["password"])) {
+            $error = "Invalid ID number or password.";
+        } else {
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["id_number"] = $user["id_number"];
             $_SESSION["name"] = $user["first_name"] . " " . $user["last_name"];
-            header("Location: dashboard.php");
+
+            // Set role and redirect based on it
+            if (isset($user["role"]) && $user["role"] === "admin") {
+                $_SESSION["role"] = "admin";
+                header("Location: admin.php");
+            } else {
+                $_SESSION["role"] = $user["role"] ?? "student";
+                header("Location: dashboard.php");
+            }
             exit;
-        } else {
-            $error = "Invalid ID number or password.";
         }
     }
 }

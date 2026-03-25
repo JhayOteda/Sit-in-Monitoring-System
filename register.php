@@ -39,21 +39,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $error = "ID Number or Email is already registered.";
         } else {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users
-                (id_number, last_name, first_name, middle_name, course_level, password, email, course, address)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $id_number,
-                $last_name,
-                $first_name,
-                $middle_name,
-                $course_level,
-                $hashed,
-                $email,
-                $course,
-                $address
-            ]);
+            try {
+                // Try inserting with role column
+                $stmt = $pdo->prepare("INSERT INTO users
+                    (id_number, last_name, first_name, middle_name, course_level, password, email, course, address, role)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $id_number,
+                    $last_name,
+                    $first_name,
+                    $middle_name,
+                    $course_level,
+                    $hashed,
+                    $email,
+                    $course,
+                    $address,
+                    'student'
+                ]);
+            } catch (PDOException $e) {
+                // If role column doesn't exist, try without it
+                $stmt = $pdo->prepare("INSERT INTO users
+                    (id_number, last_name, first_name, middle_name, course_level, password, email, course, address)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $id_number,
+                    $last_name,
+                    $first_name,
+                    $middle_name,
+                    $course_level,
+                    $hashed,
+                    $email,
+                    $course,
+                    $address
+                ]);
+            }
             $success = "Account created successfully! You can now log in.";
+            // Redirect after 2 seconds to prevent duplicate submissions
+            header("refresh:2;url=login.php");
+
         }
     }
 }
