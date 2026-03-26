@@ -35,10 +35,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $logs = [];
                 }
 
+                // Calculate remaining sessions (30 - total logs)
+                $sessions_remaining = 30 - count($logs);
+                if ($sessions_remaining < 0) $sessions_remaining = 0;
+
                 $search_result = [
                     'user' => $user,
                     'logs' => $logs,
-                    'total_sessions' => count($logs)
+                    'total_sessions' => count($logs),
+                    'sessions_remaining' => $sessions_remaining
                 ];
             }
         } catch (Exception $e) {
@@ -474,7 +479,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <!-- Auto-open modal with search results -->
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
-                            openSearchModal(<?= $search_result['user']['id'] ?>, '<?= htmlspecialchars($search_result['user']['id_number'], ENT_QUOTES) ?>', '<?= htmlspecialchars($search_result['user']['first_name'] . ' ' . $search_result['user']['last_name'], ENT_QUOTES) ?>', <?= $search_result['total_sessions'] ?>, JSON.parse('<?= json_encode($search_result['logs']) ?>'));
+                            openSearchModal(<?= $search_result['user']['id'] ?>, '<?= htmlspecialchars($search_result['user']['id_number'], ENT_QUOTES) ?>', '<?= htmlspecialchars($search_result['user']['first_name'] . ' ' . $search_result['user']['last_name'], ENT_QUOTES) ?>', <?= $search_result['total_sessions'] ?>, <?= $search_result['sessions_remaining'] ?>, JSON.parse('<?= json_encode($search_result['logs']) ?>'));
                         });
                     </script>
                 <?php endif; ?>
@@ -509,7 +514,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
                 <div>
                     <label class="form-label">Remaining Sessions</label>
-                    <div style="font-size: 0.95rem; color: var(--brand-1); font-weight: 600; font-size: 1.2rem;">∞</div>
+                    <div style="font-size: 0.95rem; color: var(--brand-1); font-weight: 600; font-size: 1.2rem;"
+                        id="modalRemainingSessions">0</div>
                 </div>
             </div>
 
@@ -572,11 +578,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 
     <script>
-        function openSearchModal(userId, idNumber, studentName, totalSessions, logs) {
+        function openSearchModal(userId, idNumber, studentName, totalSessions, sessionsRemaining, logs) {
             document.getElementById('modalUserId').value = userId;
             document.getElementById('modalIdNumberDisplay').textContent = idNumber;
             document.getElementById('modalStudentNameDisplay').textContent = studentName;
             document.getElementById('modalTotalSessions').textContent = totalSessions;
+            document.getElementById('modalRemainingSessions').textContent = sessionsRemaining;
 
             // Build sit-in history table
             if (logs && logs.length > 0) {

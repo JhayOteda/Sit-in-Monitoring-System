@@ -478,7 +478,7 @@ unset($student); // Important: unset the reference to prevent issues
                                     <td><?= htmlspecialchars($student["course_level"]) ?></td>
                                     <td><?= htmlspecialchars($student["email"]) ?></td>
                                     <td style="text-align: center; font-weight: 700; color: var(--brand-1);">
-                                        <?= $student["session_count"] ?? 0 ?>
+                                        <?= (30 - ($student["session_count"] ?? 0)) ?>
                                     </td>
                                     <td>
                                         <div class="action-buttons">

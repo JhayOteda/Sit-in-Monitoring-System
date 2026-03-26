@@ -16,6 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION['error'] = "Please fill in all required fields.";
     } else {
         try {
+            // Insert sit-in log
             $stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
             $stmt->execute([$user_id, $purpose, $lab_room]);
             $_SESSION['success'] = "Student checked in successfully!";
