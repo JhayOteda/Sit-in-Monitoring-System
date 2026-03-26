@@ -454,7 +454,7 @@ try {
                 <li>↕️ <span><b>Year:</b> <?= htmlspecialchars($user["course_level"]) ?></span></li>
                 <li>✉️ <span><b>Email:</b> <?= htmlspecialchars($user["email"]) ?></span></li>
                 <li>🪪 <span><b>Address:</b> <?= htmlspecialchars($user["address"] ?? "Not provided") ?></span></li>
-                <li>🖥️ <span><b>Session:</b> <?= $session_count ?></span></li>
+                <li>🖥️ <span><b>Remaining Session:</b> <?= (30 - $session_count) ?></span></li>
             </ul>
         </div>
     </div>

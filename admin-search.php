@@ -452,11 +452,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <li><a href="admin.php">Home</a></li>
             <li><a href="admin-search.php">Search</a></li>
             <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Sit-In</a></li>
+            <!-- <li><a href="admin-sitin.php">Sit-In</a></li> -->
             <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
+            <!-- <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-reservations.php">Reservation</a></li> -->
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -554,14 +554,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label class="form-label">Lab</label>
                         <select class="form-control" name="lab_room" required>
                             <option value="" disabled selected>Select Laboratory</option>
-                            <option value="Lab 1">Lab 1</option>
-                            <option value="Lab 2">Lab 2</option>
-                            <option value="Lab 3">Lab 3</option>
-                            <option value="Lab 4">Lab 4</option>
-                            <option value="Lab 5">Lab 5</option>
                             <option value="524">524</option>
-                            <option value="525">525</option>
+                            <option value="544">544</option>
                             <option value="526">526</option>
+                            <option value="530">530</option>
+                            <option value="528">528</option>
                         </select>
                     </div>
 

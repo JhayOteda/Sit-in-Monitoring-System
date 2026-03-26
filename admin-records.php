@@ -225,11 +225,11 @@ try {
             <li><a href="admin.php">Home</a></li>
             <li><a href="admin-search.php">Search</a></li>
             <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Sit-In</a></li>
+            <!-- <li><a href="admin-sitin.php">Sit-In</a></li> -->
             <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
+            <!-- <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-reservations.php">Reservation</a></li> -->
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>

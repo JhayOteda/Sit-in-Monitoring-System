@@ -11,17 +11,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($id_number) || empty($password)) {
         $error = "Please fill in all fields.";
     } else {
-        // Try to login from admin table first
+        // Try to login from admin table only
         $stmt = $pdo->prepare("SELECT * FROM admin WHERE id_number = ?");
         $stmt->execute([$id_number]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // If not found in admin table, try users table
-        if (!$user) {
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ?");
-            $stmt->execute([$id_number]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        }
 
         if (!$user) {
             $error = "Invalid ID number or password.";
@@ -31,15 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["id_number"] = $user["id_number"];
             $_SESSION["name"] = $user["first_name"] . " " . $user["last_name"];
-
-            // Set role and redirect based on it
-            if (isset($user["role"]) && $user["role"] === "admin") {
-                $_SESSION["role"] = "admin";
-                header("Location: admin.php");
-            } else {
-                $_SESSION["role"] = $user["role"] ?? "student";
-                header("Location: dashboard.php");
-            }
+            $_SESSION["role"] = "admin";
+            header("Location: admin.php");
             exit;
         }
     }
@@ -51,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCS | Login</title>
+    <title>CCS | Admin Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -88,8 +74,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <!-- RIGHT PANEL -->
             <div class="login-panel-right">
-                <h2 class="login-heading">Welcome Back!</h2>
-                <p class="login-subheading">Sign in to your account to continue</p>
+                <h2 class="login-heading">Admin Login</h2>
+                <p class="login-subheading">Sign in to your admin account to continue</p>
 
                 <?php if ($error): ?>
                     <div class="alert alert-error">
@@ -97,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="login.php">
+                <form method="POST" action="admin-login.php">
                     <div class="form-group">
                         <input type="text" class="form-control" name="id_number" placeholder="Enter your ID number"
                             value="<?= htmlspecialchars($_POST['id_number'] ?? '') ?>">
@@ -120,7 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </form>
 
                 <p class="register-prompt" style="margin-top:1rem;">
-                    Don't have an account? <a href="Register.php">Register here</a>
+                    Not an admin? <a href="login.php">Login as student</a>
                 </p>
             </div>
 
