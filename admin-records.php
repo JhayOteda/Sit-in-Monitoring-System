@@ -8,29 +8,7 @@ require 'db.php';
 
 $success_message = "";
 
-// Handle end sit-in action
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["action"] === "end_sitin") {
-    $log_id = intval($_POST["log_id"] ?? 0);
-    
-    if ($log_id > 0) {
-        try {
-            $stmt = $pdo->prepare("UPDATE sit_in_logs SET time_out = NOW() WHERE id = ? AND time_out IS NULL");
-            $stmt->execute([$log_id]);
-            $affected = $stmt->rowCount();
-            if ($affected > 0) {
-                $success_message = "✓ Sit-In session ended successfully!";
-                // Refresh page to show updated data
-                header("Refresh: 1; url=admin-records.php");
-            } else {
-                $success_message = "⚠ Session already ended or not found.";
-            }
-        } catch (Exception $e) {
-            $success_message = "✗ Error ending session: " . $e->getMessage();
-        }
-    }
-}
-
-// Fetch all sit-in records with student information
+// Fetch completed sit-in records with student information
 $records = [];
 try {
     $stmt = $pdo->query("
@@ -46,6 +24,7 @@ try {
             u.last_name
         FROM sit_in_logs sl
         JOIN users u ON sl.user_id = u.id
+        WHERE sl.time_out IS NOT NULL
         ORDER BY sl.created_at DESC
     ");
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -199,22 +178,6 @@ try {
             margin-bottom: 1rem;
             font-weight: 600;
         }
-
-        .btn-end {
-            background: #dc3545;
-            color: #fff;
-            padding: 0.4rem 0.8rem;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .btn-end:hover {
-            background: #c82333;
-        }
     </style>
 </head>
 
@@ -225,11 +188,11 @@ try {
             <li><a href="admin.php">Home</a></li>
             <li><a href="admin-search.php">Search</a></li>
             <li><a href="admin-students.php">Students</a></li>
-            <!-- <li><a href="admin-sitin.php">Sit-In</a></li> -->
+            <li><a href="admin-sitin.php">Active Sit-In</a></li>
             <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <!-- <li><a href="admin-reports.php">Sit-In Reports</a></li>
+            <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li> -->
+            <li><a href="admin-reservations.php">Reservation</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -259,7 +222,6 @@ try {
                                 <th>Check-In Time</th>
                                 <th>Check-Out Time</th>
                                 <th>Duration</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -290,17 +252,6 @@ try {
                                             echo '—';
                                         }
                                         ?>
-                                    </td>
-                                    <td>
-                                        <?php if (!$record['time_out']): ?>
-                                            <form method="POST" action="admin-records.php" style="display: inline;">
-                                                <input type="hidden" name="action" value="end_sitin">
-                                                <input type="hidden" name="log_id" value="<?= $record['id'] ?>">
-                                                <button type="submit" class="btn-end" onclick="return confirm('End sit-in for this student?')">End</button>
-                                            </form>
-                                        <?php else: ?>
-                                            <span style="color: var(--text-muted); font-size: 0.8rem;">—</span>
-                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

@@ -24,21 +24,35 @@ try {
 } catch (Exception $e) {
 }
 
-// Handle announcement submission
+// Handle announcement submission and deletion
 $ann_success = $ann_error = "";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $title = trim($_POST["title"] ?? "");
-    $content = trim($_POST["content"] ?? "");
+    $delete_id = $_POST["delete_id"] ?? null;
 
-    if (empty($title) || empty($content)) {
-        $ann_error = "Please fill in all fields.";
-    } else {
+    if ($delete_id) {
+        // Handle announcement deletion
         try {
-            $stmt = $pdo->prepare("INSERT INTO announcements (title, content, created_at) VALUES (?, ?, NOW())");
-            $stmt->execute([$title, $content]);
-            $ann_success = "Announcement posted successfully!";
+            $stmt = $pdo->prepare("DELETE FROM announcements WHERE id = ?");
+            $stmt->execute([$delete_id]);
+            $ann_success = "Announcement deleted successfully!";
         } catch (Exception $e) {
-            $ann_error = "Could not save announcement.";
+            $ann_error = "Could not delete announcement.";
+        }
+    } else {
+        // Handle announcement submission
+        $title = trim($_POST["title"] ?? "");
+        $content = trim($_POST["content"] ?? "");
+
+        if (empty($title) || empty($content)) {
+            $ann_error = "Please fill in all fields.";
+        } else {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO announcements (title, content, created_at) VALUES (?, ?, NOW())");
+                $stmt->execute([$title, $content]);
+                $ann_success = "Announcement posted successfully!";
+            } catch (Exception $e) {
+                $ann_error = "Could not save announcement.";
+            }
         }
     }
 }
@@ -301,6 +315,34 @@ try {
             line-height: 1.4;
         }
 
+        .ann-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .ann-content {
+            flex: 1;
+        }
+
+        .btn-delete {
+            padding: 0.3rem 0.6rem;
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -336,11 +378,11 @@ try {
             <li><a href="admin.php">Home</a></li>
             <li><a href="admin-search.php">Search</a></li>
             <li><a href="admin-students.php">Students</a></li>
-            <!-- <li><a href="admin-sitin.php">Sit-In</a></li> -->
+            <li><a href="admin-sitin.php">Active Sit-In</a></li>
             <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <!-- <li><a href="admin-reports.php">Sit-In Reports</a></li> -->
-            <!-- <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li> -->
+            <li><a href="admin-reports.php">Sit-In Reports</a></li>
+            <li><a href="admin-feedback.php">Feedback Reports</a></li>
+            <li><a href="admin-reservations.php">Reservation</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -396,9 +438,18 @@ try {
                             <div style="color: var(--text-muted); font-size: 0.8rem;">No announcements yet.</div>
                         <?php else: ?>
                             <?php foreach ($announcements as $ann): ?>
-                                <div class="ann-item">
-                                    <div class="ann-date">CCS Admin | <?= date("Y-M-d", strtotime($ann["created_at"])) ?></div>
-                                    <div class="ann-text"><?= nl2br(htmlspecialchars($ann["content"])) ?></div>
+                                <div class="ann-item"
+                                    style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; padding: 0.8rem 0; border-bottom: 1px solid var(--border-soft);">
+                                    <div class="ann-content">
+                                        <div class="ann-date">CCS Admin | <?= date("Y-M-d", strtotime($ann["created_at"])) ?>
+                                        </div>
+                                        <div class="ann-text"><?= nl2br(htmlspecialchars($ann["content"])) ?></div>
+                                    </div>
+                                    <form method="POST" action="admin.php" style="display: inline;"
+                                        onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                        <input type="hidden" name="delete_id" value="<?= $ann["id"] ?>">
+                                        <button type="submit" class="btn-delete">Delete</button>
+                                    </form>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>

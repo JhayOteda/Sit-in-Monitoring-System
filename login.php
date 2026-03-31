@@ -11,14 +11,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($id_number) || empty($password)) {
         $error = "Please fill in all fields.";
     } else {
-        // Try to login from admin table first
-        $stmt = $pdo->prepare("SELECT * FROM admin WHERE id_number = ?");
+        // Try to login from users table first (students)
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ?");
         $stmt->execute([$id_number]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // If not found in admin table, try users table
+        // If not found in users table, try admin table
         if (!$user) {
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE id_number = ?");
+            $stmt = $pdo->prepare("SELECT * FROM admin WHERE id_number = ?");
             $stmt->execute([$id_number]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
         }
@@ -69,7 +69,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
             </li>
             <li><a href="login.php">Login</a></li>
-            <li><a href="admin-login.php">Admin Login</a></li>
             <li><a href="Register.php">Register</a></li>
         </ul>
     </nav>

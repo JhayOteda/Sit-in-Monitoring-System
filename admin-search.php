@@ -37,7 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 // Calculate remaining sessions (30 - total logs)
                 $sessions_remaining = 30 - count($logs);
-                if ($sessions_remaining < 0) $sessions_remaining = 0;
+                if ($sessions_remaining < 0)
+                    $sessions_remaining = 0;
 
                 $search_result = [
                     'user' => $user,
@@ -452,11 +453,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <li><a href="admin.php">Home</a></li>
             <li><a href="admin-search.php">Search</a></li>
             <li><a href="admin-students.php">Students</a></li>
-            <!-- <li><a href="admin-sitin.php">Sit-In</a></li> -->
+            <li><a href="admin-sitin.php">Active Sit-In</a></li>
             <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <!-- <li><a href="admin-reports.php">Sit-In Reports</a></li>
+            <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li> -->
+            <li><a href="admin-reservations.php">Reservation</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
