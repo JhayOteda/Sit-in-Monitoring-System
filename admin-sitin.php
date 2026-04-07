@@ -18,12 +18,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["user_id"]) && isset($
     if ($user_id <= 0 || empty($purpose) || empty($lab_room)) {
         $error_message = "✗ Invalid data provided.";
     } else {
+        // Check if student already has an active sit-in
         try {
-            $stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
-            $stmt->execute([$user_id, $purpose, $lab_room]);
-            $success_message = "✓ Sit-In session created successfully!";
+            $check_stmt = $pdo->prepare("SELECT id FROM sit_in_logs WHERE user_id = ? AND time_out IS NULL");
+            $check_stmt->execute([$user_id]);
+            
+            if ($check_stmt->rowCount() > 0) {
+                $error_message = "✗ This student already has an active sit-in session. Please end the current session first.";
+            } else {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
+                    $stmt->execute([$user_id, $purpose, $lab_room]);
+                    $success_message = "✓ Sit-In session created successfully!";
+                } catch (Exception $e) {
+                    $error_message = "✗ Error creating sit-in: " . $e->getMessage();
+                }
+            }
         } catch (Exception $e) {
-            $error_message = "✗ Error creating sit-in: " . $e->getMessage();
+            $error_message = "✗ Error checking active session: " . $e->getMessage();
         }
     }
 }

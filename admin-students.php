@@ -6,6 +6,46 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
 }
 require 'db.php';
 
+// Handle add student form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_student'])) {
+    $id_number = trim($_POST["id_number"]);
+    $last_name = trim($_POST["last_name"]);
+    $first_name = trim($_POST["first_name"]);
+    $course = trim($_POST["course"]);
+    $course_level = trim($_POST["course_level"]);
+    $password = trim($_POST["password"]);
+    $repeat_pass = trim($_POST["repeat_password"]);
+    $email = trim($_POST["email"]);
+
+    if (empty($id_number) || empty($last_name) || empty($first_name) || empty($course) || empty($course_level) || empty($password) || empty($repeat_pass) || empty($email)) {
+        $_SESSION['error'] = "Please fill in all required fields.";
+    } elseif ($password !== $repeat_pass) {
+        $_SESSION['error'] = "Passwords do not match.";
+    } elseif (strlen($password) < 6) {
+        $_SESSION['error'] = "Password must be at least 6 characters.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION['error'] = "Please enter a valid email address.";
+    } else {
+        $check = $pdo->prepare("SELECT id FROM users WHERE id_number = ? OR email = ?");
+        $check->execute([$id_number, $email]);
+
+        if ($check->rowCount() > 0) {
+            $_SESSION['error'] = "ID Number or Email is already registered.";
+        } else {
+            $hashed = password_hash($password, PASSWORD_DEFAULT);
+            try {
+                $stmt = $pdo->prepare("INSERT INTO users (id_number, last_name, first_name, course_level, password, email, course) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$id_number, $last_name, $first_name, $course_level, $hashed, $email, $course]);
+                $_SESSION['success'] = "Student added successfully!";
+                header("Location: admin-students.php");
+                exit;
+            } catch (PDOException $e) {
+                $_SESSION['error'] = "Error adding student: " . $e->getMessage();
+            }
+        }
+    }
+}
+
 // Handle edit form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_student'])) {
     $student_id = intval($_POST['student_id']);
@@ -41,6 +81,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
         $_SESSION['success'] = "Student deleted successfully!";
     } catch (Exception $e) {
         $_SESSION['error'] = "Error deleting student: " . $e->getMessage();
+    }
+    header("Location: admin-students.php");
+    exit;
+}
+
+// Handle reset all sessions action
+if (isset($_GET['action']) && $_GET['action'] === 'reset_all_sessions') {
+    try {
+        $stmt = $pdo->prepare("DELETE FROM sit_in_logs");
+        $stmt->execute();
+        $_SESSION['success'] = "All sessions have been reset successfully! All students now have 30 sessions remaining.";
+    } catch (Exception $e) {
+        $_SESSION['error'] = "Error resetting sessions: " . $e->getMessage();
     }
     header("Location: admin-students.php");
     exit;
@@ -421,6 +474,64 @@ unset($student); // Important: unset the reference to prevent issues
         .btn-cancel:hover {
             background: #556063;
         }
+
+        .card-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-header-title {
+            flex: 1;
+        }
+
+        .card-header-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-reset {
+            background: #ff9800;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-reset:hover {
+            background: #e68900;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+        }
     </style>
 </head>
 
@@ -443,7 +554,15 @@ unset($student); // Important: unset the reference to prevent issues
 
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">👥 Students</div>
+            <div class="card-head">
+                <div class="card-header-wrapper">
+                    <div class="card-header-title">👥 Students</div>
+                    <div class="card-header-buttons">
+                        <button class="btn-add" onclick="openAddModal()">+ Add Student</button>
+                        <a href="admin-students.php?action=reset_all_sessions" class="btn-reset" onclick="return confirm('Are you sure you want to reset all student sessions to 30? This action cannot be undone.')">Reset All Sessions</a>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 <?php if (isset($_SESSION['success'])): ?>
                     <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
@@ -553,6 +672,75 @@ unset($student); // Important: unset the reference to prevent issues
         </div>
     </div>
 
+    <!-- Add Student Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Student</h2>
+                <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+            <form method="POST" action="admin-students.php">
+                <input type="hidden" name="add_student" value="1">
+
+                <div class="form-group">
+                    <label class="form-label">ID Number</label>
+                    <input type="text" class="form-control" name="id_number" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" name="first_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Course</label>
+                    <select class="form-control" name="course" required>
+                        <option value="">Select Course</option>
+                        <option value="BSIT">Bachelor of Science in Information Technology (BSIT)</option>
+                        <option value="BSCA">Bachelor of Science in Customs Administration (BSCA)</option>
+                        <option value="BSCS">Bachelor of Science in Computer Science (BSCS)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Year Level</label>
+                    <select class="form-control" name="course_level" required>
+                        <option value="">Select Year Level</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password (min. 6 characters)</label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Repeat Password</label>
+                    <input type="password" class="form-control" name="repeat_password" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openEditModal(id, firstName, lastName, email, course, courseLevel) {
             document.getElementById('student_id').value = id;
@@ -568,11 +756,23 @@ unset($student); // Important: unset the reference to prevent issues
             document.getElementById('editModal').style.display = 'none';
         }
 
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'block';
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
         // Close modal when clicking outside of it
         window.onclick = function (event) {
-            var modal = document.getElementById('editModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
+            var editModal = document.getElementById('editModal');
+            var addModal = document.getElementById('addModal');
+            if (event.target == editModal) {
+                editModal.style.display = 'none';
+            }
+            if (event.target == addModal) {
+                addModal.style.display = 'none';
             }
         }
     </script>

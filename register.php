@@ -5,6 +5,14 @@ require 'db.php';
 $error = "";
 $success = "";
 
+// Get redirect parameter or default to login.php
+$redirect_page = isset($_GET['redirect']) ? trim($_GET['redirect']) : 'login.php';
+// Validate redirect is a safe page
+$allowed_redirects = ['login.php', 'admin-students.php'];
+if (!in_array($redirect_page, $allowed_redirects)) {
+    $redirect_page = 'login.php';
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $id_number = trim($_POST["id_number"]);
     $last_name = trim($_POST["last_name"]);
@@ -74,8 +82,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ]);
             }
             $success = "Account created successfully! You can now log in.";
-            // Redirect after 2 seconds to prevent duplicate submissions
-            header("refresh:2;url=login.php");
+            header("Location: " . $redirect_page);
+            exit;
 
         }
     }
@@ -115,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <div class="register-card">
 
             <!-- Back Button -->
-            <a href="login.php" class="back-btn">Back</a>
+            <a href="<?= htmlspecialchars($redirect_page) ?>" class="back-btn">Back</a>
 
             <!-- Title -->
             <h2 class="register-title">Sign up</h2>
