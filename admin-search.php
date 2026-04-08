@@ -544,10 +544,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <option value="JavaScript">JavaScript</option>
                             <option value="PHP">PHP</option>
                             <option value="C#">C#</option>
-                            <option value="Ruby">Ruby</option>
-                            <option value="Go">Go</option>
-                            <option value="Rust">Rust</option>
-                            <option value="Other">Other</option>
                         </select>
                     </div>
 

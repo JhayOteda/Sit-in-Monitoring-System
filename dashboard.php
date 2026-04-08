@@ -497,8 +497,36 @@ try {
             <div class="d-edit-card">
                 <div class="d-card-head">Edit Profile</div>
                 <div class="ef-body">
-                    <form method="POST" action="update_profile.php">
+                    <form method="POST" action="update_profile.php" enctype="multipart/form-data">
                         <div class="ef-grid">
+                            <div class="ef-group ef-full" style="text-align: center; padding: 1.5rem 1rem;">
+                                <div class="ef-avatar-preview" style="width: 140px; height: 140px; background: #f5FAF7; border: 2px solid var(--border-soft); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0 auto 1rem; box-shadow: 0 8px 25px rgba(47, 122, 89, 0.15);">
+                                    <?php if (!empty($user["profile_picture"]) && file_exists("uploads/" . $user["profile_picture"])): ?>
+                                        <img src="uploads/<?= htmlspecialchars($user["profile_picture"]) ?>" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <?php else: ?>
+                                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="110" height="110">
+                                            <circle cx="50" cy="35" r="22" fill="#9aafc7" />
+                                            <ellipse cx="50" cy="82" rx="30" ry="18" fill="#9aafc7" />
+                                        </svg>
+                                    <?php endif; ?>
+                                </div>
+                                <label class="ef-label" style="display: block; margin-bottom: 0.5rem;">Profile Picture</label>
+                                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/gif,image/webp" id="profile_picture_input" style="display: block; margin: 0 auto; padding: 0.5rem;">
+                                <small style="display: block; color: var(--text-muted); margin-top: 0.5rem;">Supported: JPG, PNG, GIF, WebP (Max 5MB)</small>
+                                <script>
+                                    document.getElementById('profile_picture_input').addEventListener('change', function(e) {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onload = function(event) {
+                                                const preview = document.querySelector('.ef-avatar-preview');
+                                                preview.innerHTML = '<img src="' + event.target.result + '" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">';
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    });
+                                </script>
+                            </div>
                             <div class="ef-group ef-full">
                                 <label class="ef-label">ID Number</label>
                                 <input class="ef-control" type="text" value="<?= htmlspecialchars($user["id_number"]) ?>"
@@ -569,10 +597,14 @@ try {
                 <div class="d-card-body">
                     <div class="d-avatar">
                         <div class="d-avatar-box">
-                            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="110" height="110">
-                                <circle cx="50" cy="35" r="22" fill="#9aafc7" />
-                                <ellipse cx="50" cy="82" rx="30" ry="18" fill="#9aafc7" />
-                            </svg>
+                            <?php if (!empty($user["profile_picture"]) && file_exists("uploads/" . $user["profile_picture"])): ?>
+                                <img src="uploads/<?= htmlspecialchars($user["profile_picture"]) ?>" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover;">
+                            <?php else: ?>
+                                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="110" height="110">
+                                    <circle cx="50" cy="35" r="22" fill="#9aafc7" />
+                                    <ellipse cx="50" cy="82" rx="30" ry="18" fill="#9aafc7" />
+                                </svg>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="d-divider"></div>
