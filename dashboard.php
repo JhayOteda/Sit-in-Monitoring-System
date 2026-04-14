@@ -512,7 +512,6 @@ try {
                                 </div>
                                 <label class="ef-label" style="display: block; margin-bottom: 0.5rem;">Profile Picture</label>
                                 <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/gif,image/webp" id="profile_picture_input" style="display: block; margin: 0 auto; padding: 0.5rem;">
-                                <small style="display: block; color: var(--text-muted); margin-top: 0.5rem;">Supported: JPG, PNG, GIF, WebP (Max 5MB)</small>
                                 <script>
                                     document.getElementById('profile_picture_input').addEventListener('change', function(e) {
                                         const file = e.target.files[0];

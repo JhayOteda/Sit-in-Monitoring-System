@@ -5,19 +5,28 @@ require 'db.php';
 $user_id = $_SESSION["user_id"];
 $success = $error = "";
 
+// Fetch user data to display ID and name
+$user = null;
+try {
+    $stmt = $pdo->prepare("SELECT id_number, first_name, last_name FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $date    = trim($_POST["date"] ?? "");
     $time_in = trim($_POST["time_in"] ?? "");
     $purpose = trim($_POST["purpose"] ?? "");
-    if (empty($date) || empty($time_in) || empty($purpose)) {
+    $lab_room = trim($_POST["lab_room"] ?? "");
+    if (empty($date) || empty($time_in) || empty($purpose) || empty($lab_room)) {
         $error = "Please fill in all fields.";
     } else {
         try {
-            $stmt = $pdo->prepare("INSERT INTO reservations (user_id, date, time_in, purpose, status) VALUES (?, ?, ?, ?, 'Pending')");
-            $stmt->execute([$user_id, $date, $time_in, $purpose]);
-            $success = "Reservation submitted successfully!";
+            $stmt = $pdo->prepare("INSERT INTO reservations (user_id, date, time_in, purpose, lab_room, status, created_at) VALUES (?, ?, ?, ?, ?, 'Pending', NOW())");
+            $stmt->execute([$user_id, $date, $time_in, $purpose, $lab_room]);
+            $success = "Reservation submitted successfully! Status: Pending";
         } catch (Exception $e) {
-            $error = "Could not save reservation. Please try again.";
+            $error = "Error: " . $e->getMessage();
         }
     }
 }
@@ -113,6 +122,18 @@ try {
         <div class="d-card-body">
             <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
             <?php if ($success): ?><div class="alert alert-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
+            
+            <?php if ($user): ?>
+            <div style="background: var(--input-bg); padding: 1rem; border-radius: 5px; margin-bottom: 1.2rem;">
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem;">
+                    <strong>ID Number:</strong> <?= htmlspecialchars($user['id_number']) ?>
+                </div>
+                <div style="font-size: 0.9rem; color: var(--text-muted);">
+                    <strong>Name:</strong> <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <form method="POST" action="reservation.php" style="max-width:480px;">
                 <div class="ef-group">
                     <label class="ef-label">Date</label>
@@ -124,14 +145,34 @@ try {
                 </div>
                 <div class="ef-group">
                     <label class="ef-label">Purpose</label>
-                    <textarea class="ef-control" name="purpose" rows="3" placeholder="e.g. Programming practice, thesis work..." required></textarea>
+                    <select class="ef-control" name="purpose" required>
+                        <option value="">-- Select Programming Language --</option>
+                        <option value="C Programming">C Programming</option>
+                        <option value="C++">C++</option>
+                        <option value="Java">Java</option>
+                        <option value="Python">Python</option>
+                        <option value="JavaScript">JavaScript</option>
+                        <option value="PHP">PHP</option>
+                        <option value="C#">C#</option>
+                    </select>
+                </div>
+                <div class="ef-group">
+                    <label class="ef-label">Lab Room</label>
+                    <select class="ef-control" name="lab_room" required>
+                        <option value="">-- Select Laboratory --</option>
+                        <option value="524">524</option>
+                        <option value="544">544</option>
+                        <option value="526">526</option>
+                        <option value="530">530</option>
+                        <option value="528">528</option>
+                    </select>
                 </div>
                 <button type="submit" class="ef-btn-save">Submit Reservation</button>
             </form>
             <?php if (!empty($reservations)): ?>
                 <h4>My Reservations</h4>
                 <table>
-                    <thead><tr><th>#</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th></tr></thead>
+                    <thead><tr><th>#</th><th>Date</th><th>Time</th><th>Purpose</th><th>Lab Room</th><th>Status</th></tr></thead>
                     <tbody>
                         <?php foreach ($reservations as $i => $r): ?>
                         <tr>
@@ -139,6 +180,7 @@ try {
                             <td><?= htmlspecialchars(date("M d, Y", strtotime($r["date"]))) ?></td>
                             <td><?= htmlspecialchars($r["time_in"]) ?></td>
                             <td><?= htmlspecialchars($r["purpose"]) ?></td>
+                            <td><?= htmlspecialchars($r["lab_room"] ?? "N/A") ?></td>
                             <td><span class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span></td>
                         </tr>
                         <?php endforeach; ?>

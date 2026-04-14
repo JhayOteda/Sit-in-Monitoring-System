@@ -6,9 +6,59 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
 }
 require 'db.php';
 
+$success_msg = "";
+$error_msg = "";
+
+// Handle Approve/Reject actions
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_POST["reservation_id"])) {
+    $reservation_id = intval($_POST["reservation_id"]);
+    $action = trim($_POST["action"]);
+
+    if ($action === "approve" || $action === "reject") {
+        $new_status = ($action === "approve") ? "Approved" : "Rejected";
+        try {
+            // Get reservation details for creating sit-in log
+            $get_res = $pdo->prepare("SELECT user_id, purpose, lab_room FROM reservations WHERE id = ?");
+            $get_res->execute([$reservation_id]);
+            $reservation = $get_res->fetch(PDO::FETCH_ASSOC);
+            
+            if ($reservation && $action === "approve") {
+                // Create sit-in log entry when approving
+                $user_id = $reservation['user_id'];
+                $purpose = $reservation['purpose'];
+                $lab_room = $reservation['lab_room'];
+                
+                try {
+                    // Check if student already has active sit-in
+                    $check_stmt = $pdo->prepare("SELECT id FROM sit_in_logs WHERE user_id = ? AND time_out IS NULL");
+                    $check_stmt->execute([$user_id]);
+                    
+                    if ($check_stmt->rowCount() === 0) {
+                        // Create new sit-in entry
+                        $sitin_stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
+                        $sitin_stmt->execute([$user_id, $purpose, $lab_room]);
+                    }
+                } catch (Exception $e) {
+                    // Continue with reservation update even if sit-in creation fails
+                }
+            }
+            
+            // Update reservation status
+            $stmt = $pdo->prepare("UPDATE reservations SET status = ? WHERE id = ?");
+            $stmt->execute([$new_status, $reservation_id]);
+            $success_msg = "Reservation has been " . $new_status . "!";
+            if ($action === "approve") {
+                $success_msg .= " A sit-in session has been created.";
+            }
+        } catch (Exception $e) {
+            $error_msg = "Error updating reservation: " . $e->getMessage();
+        }
+    }
+}
+
 $reservations = [];
 try {
-    $stmt = $pdo->query("SELECT r.*, u.first_name, u.last_name FROM reservations r JOIN users u ON r.user_id = u.id ORDER BY r.created_at DESC");
+    $stmt = $pdo->query("SELECT r.*, u.id_number, u.first_name, u.last_name FROM reservations r JOIN users u ON r.user_id = u.id ORDER BY r.created_at DESC");
     $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
 }
@@ -172,6 +222,65 @@ try {
             text-align: center;
             color: var(--text-muted);
         }
+
+        .alert {
+            padding: 0.7rem 1rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: #e6f4ea;
+            color: #155724;
+            border: 1px solid #b7dfbe;
+        }
+
+        .alert-error {
+            background: #fde8e8;
+            color: #a01a1a;
+            border: 1px solid #f5b7b7;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .btn-approve, .btn-reject {
+            padding: 0.3rem 0.7rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-approve {
+            background: #e6f4ea;
+            color: #155724;
+            border: 1px solid #b7dfbe;
+        }
+
+        .btn-approve:hover {
+            background: #d0f0e1;
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: #fde8e8;
+            color: #a01a1a;
+            border: 1px solid #f5b7b7;
+        }
+
+        .btn-reject:hover {
+            background: #fcd3d3;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -194,28 +303,52 @@ try {
         <div class="card">
             <div class="card-head">📅 Reservations</div>
             <div class="card-body">
+                <?php if ($success_msg): ?><div class="alert alert-success"><?= htmlspecialchars($success_msg) ?></div><?php endif; ?>
+                <?php if ($error_msg): ?><div class="alert alert-error"><?= htmlspecialchars($error_msg) ?></div><?php endif; ?>
+                
                 <?php if (empty($reservations)): ?>
                     <div class="no-data">No reservations found.</div>
                 <?php else: ?>
                     <table>
                         <thead>
                             <tr>
-                                <th>Student</th>
+                                <th>ID Number</th>
+                                <th>Student Name</th>
                                 <th>Date</th>
                                 <th>Time</th>
                                 <th>Purpose</th>
+                                <th>Lab Room</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($reservations as $r): ?>
                                 <tr>
+                                    <td><?= htmlspecialchars($r["id_number"]) ?></td>
                                     <td><?= htmlspecialchars($r["first_name"] . " " . $r["last_name"]) ?></td>
                                     <td><?= htmlspecialchars(date("M d, Y", strtotime($r["date"]))) ?></td>
                                     <td><?= htmlspecialchars($r["time_in"]) ?></td>
                                     <td><?= htmlspecialchars($r["purpose"]) ?></td>
-                                    <td><span
-                                            class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span>
+                                    <td><?= htmlspecialchars($r["lab_room"] ?? "N/A") ?></td>
+                                    <td><span class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span></td>
+                                    <td>
+                                        <?php if ($r["status"] === "Pending"): ?>
+                                        <div class="action-btns">
+                                            <form method="POST" style="display:inline;">
+                                                <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                                                <input type="hidden" name="action" value="approve">
+                                                <button type="submit" class="btn-approve">Approve</button>
+                                            </form>
+                                            <form method="POST" style="display:inline;">
+                                                <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                                                <input type="hidden" name="action" value="reject">
+                                                <button type="submit" class="btn-reject">Reject</button>
+                                            </form>
+                                        </div>
+                                        <?php else: ?>
+                                        <span style="color: var(--text-muted); font-size: 0.7rem;">No actions</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
