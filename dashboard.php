@@ -628,6 +628,9 @@ try {
                     <?php foreach ($announcements as $ann): ?>
                         <div class="d-ann-item">
                             <div class="d-ann-meta">CCS Admin | <?= date("Y-M-d", strtotime($ann["created_at"])) ?></div>
+                            <?php if (!empty($ann["title"])): ?>
+                                <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;"><?= htmlspecialchars($ann["title"]) ?></div>
+                            <?php endif; ?>
                             <?php if (!empty($ann["content"])): ?>
                                 <p class="d-ann-text"><?= nl2br(htmlspecialchars($ann["content"])) ?></p>
                             <?php endif; ?>

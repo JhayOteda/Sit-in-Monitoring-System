@@ -21,34 +21,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
             $get_res = $pdo->prepare("SELECT user_id, purpose, lab_room FROM reservations WHERE id = ?");
             $get_res->execute([$reservation_id]);
             $reservation = $get_res->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($reservation && $action === "approve") {
                 // Create sit-in log entry when approving
                 $user_id = $reservation['user_id'];
                 $purpose = $reservation['purpose'];
                 $lab_room = $reservation['lab_room'];
-                
+
                 try {
                     // Check if student already has active sit-in
                     $check_stmt = $pdo->prepare("SELECT id FROM sit_in_logs WHERE user_id = ? AND time_out IS NULL");
                     $check_stmt->execute([$user_id]);
-                    
-                    if ($check_stmt->rowCount() === 0) {
+
+                    if ($check_stmt->rowCount() > 0) {
+                        // User already has an active sit-in session
+                        $error_msg = "Cannot approve this reservation. This student already has an active sit-in session. The admin must end the current session first.";
+                    } else {
                         // Create new sit-in entry
                         $sitin_stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
                         $sitin_stmt->execute([$user_id, $purpose, $lab_room]);
+
+                        // Update reservation status
+                        $stmt = $pdo->prepare("UPDATE reservations SET status = ? WHERE id = ?");
+                        $stmt->execute([$new_status, $reservation_id]);
+                        $success_msg = "Reservation has been " . $new_status . "! A sit-in session has been created.";
                     }
                 } catch (Exception $e) {
-                    // Continue with reservation update even if sit-in creation fails
+                    $error_msg = "Error creating sit-in session: " . $e->getMessage();
                 }
-            }
-            
-            // Update reservation status
-            $stmt = $pdo->prepare("UPDATE reservations SET status = ? WHERE id = ?");
-            $stmt->execute([$new_status, $reservation_id]);
-            $success_msg = "Reservation has been " . $new_status . "!";
-            if ($action === "approve") {
-                $success_msg .= " A sit-in session has been created.";
+            } else if ($action === "reject") {
+                // Update reservation status for rejection
+                $stmt = $pdo->prepare("UPDATE reservations SET status = ? WHERE id = ?");
+                $stmt->execute([$new_status, $reservation_id]);
+                $success_msg = "Reservation has been " . $new_status . "!";
             }
         } catch (Exception $e) {
             $error_msg = "Error updating reservation: " . $e->getMessage();
@@ -248,7 +253,8 @@ try {
             gap: 0.3rem;
         }
 
-        .btn-approve, .btn-reject {
+        .btn-approve,
+        .btn-reject {
             padding: 0.3rem 0.7rem;
             border: none;
             border-radius: 4px;
@@ -303,9 +309,11 @@ try {
         <div class="card">
             <div class="card-head">📅 Reservations</div>
             <div class="card-body">
-                <?php if ($success_msg): ?><div class="alert alert-success"><?= htmlspecialchars($success_msg) ?></div><?php endif; ?>
-                <?php if ($error_msg): ?><div class="alert alert-error"><?= htmlspecialchars($error_msg) ?></div><?php endif; ?>
-                
+                <?php if ($success_msg): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($success_msg) ?></div><?php endif; ?>
+                <?php if ($error_msg): ?>
+                    <div class="alert alert-error"><?= htmlspecialchars($error_msg) ?></div><?php endif; ?>
+
                 <?php if (empty($reservations)): ?>
                     <div class="no-data">No reservations found.</div>
                 <?php else: ?>
@@ -331,23 +339,25 @@ try {
                                     <td><?= htmlspecialchars($r["time_in"]) ?></td>
                                     <td><?= htmlspecialchars($r["purpose"]) ?></td>
                                     <td><?= htmlspecialchars($r["lab_room"] ?? "N/A") ?></td>
-                                    <td><span class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span></td>
+                                    <td><span
+                                            class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span>
+                                    </td>
                                     <td>
                                         <?php if ($r["status"] === "Pending"): ?>
-                                        <div class="action-btns">
-                                            <form method="POST" style="display:inline;">
-                                                <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
-                                                <input type="hidden" name="action" value="approve">
-                                                <button type="submit" class="btn-approve">Approve</button>
-                                            </form>
-                                            <form method="POST" style="display:inline;">
-                                                <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
-                                                <input type="hidden" name="action" value="reject">
-                                                <button type="submit" class="btn-reject">Reject</button>
-                                            </form>
-                                        </div>
+                                            <div class="action-btns">
+                                                <form method="POST" style="display:inline;">
+                                                    <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                                                    <input type="hidden" name="action" value="approve">
+                                                    <button type="submit" class="btn-approve">Approve</button>
+                                                </form>
+                                                <form method="POST" style="display:inline;">
+                                                    <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                                                    <input type="hidden" name="action" value="reject">
+                                                    <button type="submit" class="btn-reject">Reject</button>
+                                                </form>
+                                            </div>
                                         <?php else: ?>
-                                        <span style="color: var(--text-muted); font-size: 0.7rem;">No actions</span>
+                                            <span style="color: var(--text-muted); font-size: 0.7rem;">No actions</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
