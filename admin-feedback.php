@@ -4,6 +4,17 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
     header("Location: login.php");
     exit;
 }
+require 'db.php';
+
+$feedback_list = [];
+try {
+    $stmt = $pdo->query("SELECT f.id, f.log_id, f.user_id, u.first_name, u.last_name, u.id_number, f.message, f.created_at 
+                         FROM feedback f 
+                         JOIN users u ON f.user_id = u.id 
+                         ORDER BY f.created_at DESC");
+    $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -111,11 +122,46 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
         .card-body {
             padding: 1.5rem;
             color: var(--text-muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        table th {
+            background: var(--brand-1);
+            color: #fff;
+            padding: 0.7rem 0.9rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        table td {
+            padding: 0.9rem 0.9rem;
+            border-bottom: 1px solid var(--border-soft);
+            color: var(--text-primary);
+        }
+
+        table tr:hover td {
+            background: #f8faf9;
+        }
+
+        .feedback-message {
+            max-width: 400px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .no-data {
             text-align: center;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 2rem;
+            color: var(--text-muted);
         }
     </style>
 </head>
@@ -137,8 +183,35 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">💬 Feedback</div>
-            <div class="card-body">This feature is coming soon...</div>
+            <div class="card-head">💬 Feedback Reports</div>
+            <div class="card-body">
+                <?php if (empty($feedback_list)): ?>
+                    <div class="no-data">No feedback submitted yet.</div>
+                <?php else: ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student Name</th>
+                                <th>ID Number</th>
+                                <th>Message</th>
+                                <th>Date Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($feedback_list as $i => $fb): ?>
+                                <tr>
+                                    <td><?= $i + 1 ?></td>
+                                    <td><?= htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($fb['id_number']) ?></td>
+                                    <td class="feedback-message"><?= htmlspecialchars($fb['message']) ?></td>
+                                    <td><?= htmlspecialchars(date("M d, Y h:i A", strtotime($fb['created_at']))) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </body>

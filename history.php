@@ -13,6 +13,18 @@ try {
     $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
 }
+
+// Get feedback status for each log
+$feedback_status = [];
+try {
+    $stmt = $pdo->prepare("SELECT log_id FROM feedback WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($feedbacks as $fb) {
+        $feedback_status[$fb['log_id']] = true;
+    }
+} catch (Exception $e) {
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -218,6 +230,186 @@ try {
             color: var(--text-muted);
             font-size: 0.9rem;
         }
+
+        .feedback-btn {
+            padding: 0.4rem 0.8rem;
+            background: var(--brand-1);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-btn:hover {
+            background: var(--brand-2);
+            transform: translateY(-1px);
+        }
+
+        .feedback-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feedback-btn:disabled:hover {
+            background: #999;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: var(--brand-1);
+            color: #fff;
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-header h2 {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ddd;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modal-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .modal-textarea {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            outline: none;
+            background: var(--input-bg);
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-textarea:focus {
+            border-color: var(--brand-1);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(47, 122, 89, 0.15);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+
+        .modal-btn-submit {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(47, 122, 89, 0.35);
+        }
+
+        .modal-btn-submit:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--brand-1-strong) 0%, var(--brand-2-strong) 100%);
+            box-shadow: 0 6px 20px rgba(36, 95, 69, 0.45);
+        }
+
+        .modal-btn-cancel {
+            padding: 0.75rem 1.5rem;
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -254,6 +446,7 @@ try {
                                 <th>Time Out</th>
                                 <th>Purpose</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -268,6 +461,13 @@ try {
                                     <td><span
                                             class="badge badge-<?= strtolower($log['status'] ?? 'done') ?>"><?= htmlspecialchars($log["status"] ?? "Done") ?></span>
                                     </td>
+                                    <td>
+                                        <?php if (isset($feedback_status[$log['id']])): ?>
+                                            <button class="feedback-btn" disabled title="Feedback already submitted">✓ Sent</button>
+                                        <?php else: ?>
+                                            <button class="feedback-btn" onclick="openFeedbackModal(<?= $log['id'] ?>)">Feedback</button>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -276,6 +476,84 @@ try {
             </div>
         </div>
     </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Feedback</h2>
+                <button class="close-btn" onclick="closeFeedbackModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-group">
+                    <label class="modal-label">Your Feedback</label>
+                    <textarea id="feedbackText" class="modal-textarea" placeholder="Enter your feedback message here..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn-cancel" onclick="closeFeedbackModal()">Cancel</button>
+                    <button class="modal-btn-submit" onclick="submitFeedback()">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLogId = null;
+
+        function openFeedbackModal(logId) {
+            currentLogId = logId;
+            document.getElementById('feedbackModal').classList.add('show');
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('feedbackText').focus();
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('show');
+            currentLogId = null;
+        }
+
+        function submitFeedback() {
+            const feedback = document.getElementById('feedbackText').value.trim();
+            
+            if (!feedback) {
+                alert('Please enter your feedback message.');
+                return;
+            }
+
+            // Submit feedback via AJAX
+            fetch('submit_feedback.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    log_id: currentLogId,
+                    message: feedback
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Feedback submitted successfully!');
+                    closeFeedbackModal();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting feedback.');
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('feedbackModal');
+            if (event.target == modal) {
+                closeFeedbackModal();
+            }
+        }
+    </script>
 </body>
 
 </html>

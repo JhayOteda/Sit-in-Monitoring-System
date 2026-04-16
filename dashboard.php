@@ -459,6 +459,32 @@ try {
             background: #d0d0d0;
             transform: translateY(-2px);
         }
+
+        .ef-file-input {
+            display: none;
+        }
+
+        .ef-file-label {
+            display: inline-block;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(47, 122, 89, 0.25);
+            white-space: nowrap;
+        }
+
+        .ef-file-label:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, var(--brand-1-strong) 0%, var(--brand-2-strong) 100%);
+            box-shadow: 0 6px 20px rgba(36, 95, 69, 0.45);
+        }
     </style>
 </head>
 
@@ -511,7 +537,8 @@ try {
                                     <?php endif; ?>
                                 </div>
                                 <label class="ef-label" style="display: block; margin-bottom: 0.5rem;">Profile Picture</label>
-                                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/gif,image/webp" id="profile_picture_input" style="display: block; margin: 0 auto; padding: 0.5rem;">
+                                <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/gif,image/webp" id="profile_picture_input" class="ef-file-input">
+                                <label for="profile_picture_input" class="ef-file-label">Choose File</label>
                                 <script>
                                     document.getElementById('profile_picture_input').addEventListener('change', function(e) {
                                         const file = e.target.files[0];
