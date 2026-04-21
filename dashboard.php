@@ -14,13 +14,41 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $edit_mode = isset($_GET['edit']) && $_GET['edit'] === 'true';
 
 $announcements = [];
+$unread_count = 0;
+$unread_announcements = [];
+
 try {
-    $ann = $pdo->query("SELECT * FROM announcements ORDER BY created_at DESC");
-    $announcements = $ann->fetchAll(PDO::FETCH_ASSOC);
+    // Create announcement_reads table if it doesn't exist
+    $pdo->exec("CREATE TABLE IF NOT EXISTS announcement_reads (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        announcement_id INT NOT NULL,
+        read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_read (user_id, announcement_id),
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (announcement_id) REFERENCES announcements(id) ON DELETE CASCADE
+    )");
+
+    // Get all announcements with read status for current user
+    $ann_stmt = $pdo->prepare("SELECT a.id, a.title, a.content, a.created_at, 
+                               IF(ar.id IS NOT NULL, 1, 0) as is_read
+                               FROM announcements a 
+                               LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id AND ar.user_id = ?
+                               ORDER BY a.created_at DESC LIMIT 10");
+    $ann_stmt->execute([$user_id]);
+    $announcements = $ann_stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Count unread announcements
+    $unread_count = 0;
+    foreach ($announcements as $ann) {
+        if (!$ann['is_read']) {
+            $unread_count++;
+        }
+    }
 } catch (Exception $e) {
     $announcements = [
-        ["title" => "", "content" => "", "created_at" => "2026-02-11"],
-        ["title" => "", "content" => "Important Announcement We are excited to announce the launch of our new website! 🎉 Explore our latest products and services now!", "created_at" => "2024-05-08"],
+        ["id" => 1, "title" => "", "content" => "", "created_at" => "2026-02-11"],
+        ["id" => 2, "title" => "", "content" => "Important Announcement We are excited to announce the launch of our new website! 🎉 Explore our latest products and services now!", "created_at" => "2024-05-08"],
     ];
 }
 
@@ -135,6 +163,24 @@ try {
             position: relative;
         }
 
+        .d-notification-badge {
+            display: inline-block;
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #dc3545;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+        }
+
         .d-dd-menu {
             display: none;
             position: absolute;
@@ -143,7 +189,9 @@ try {
             background: #fff;
             border: 1px solid #ddd;
             border-radius: 4px;
-            min-width: 190px;
+            min-width: 280px;
+            max-height: 400px;
+            overflow-y: auto;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
             z-index: 999;
         }
@@ -152,11 +200,76 @@ try {
             display: block;
         }
 
-        .d-dd-menu span {
-            display: block;
-            padding: 0.7rem 1rem;
-            font-size: 0.83rem;
+        .d-dd-menu .d-dd-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            background: #f8faf9;
+        }
+
+        .d-dd-item {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .d-dd-item:hover {
+            background: #f8faf9;
+        }
+
+        .d-dd-item:last-child {
+            border-bottom: none;
+        }
+
+        .d-dd-item-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .d-dd-item-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .d-dd-item-content {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .d-dd-item.is-read {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .d-dd-item.is-read .d-dd-item-date {
+            color: #999;
+        }
+
+        .d-dd-item.is-read .d-dd-item-title {
             color: #888;
+        }
+
+        .d-dd-read-badge {
+            display: inline-block;
+            margin-left: 0.5rem;
+            color: #28a745;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .d-dd-empty {
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
         }
 
         /* Flash alerts */
@@ -495,9 +608,24 @@ try {
         <span class="d-nav-brand"><?= $edit_mode ? "Edit Profile" : "Dashboard" ?></span>
         <ul class="d-nav-links">
             <li class="d-dropdown">
-                <a href="#">Notification ▾</a>
+                <a href="#">Notification ▾<?php if ($unread_count > 0): ?><span class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
                 <div class="d-dd-menu">
-                    <span>No new notifications</span>
+                    <?php if (empty($announcements)): ?>
+                        <div class="d-dd-empty">No announcements</div>
+                    <?php else: ?>
+                        <div class="d-dd-header"> <?= $unread_count ?> New Announcement<?= $unread_count !== 1 ? 's' : '' ?></div>
+                        <?php foreach ($announcements as $ann): ?>
+                            <div class="d-dd-item<?= $ann['is_read'] ? ' is-read' : '' ?>" id="ann-item-<?= $ann['id'] ?>" onclick="markAnnouncementAsRead(<?= $ann['id'] ?>)">
+                                <div class="d-dd-item-date">CCS Admin | <?= date("M d, Y", strtotime($ann["created_at"])) ?><?php if ($ann['is_read']): ?><span class="d-dd-read-badge">✓ Read</span><?php endif; ?></div>
+                                <?php if (!empty($ann['title'])): ?>
+                                    <div class="d-dd-item-title"><?= htmlspecialchars($ann['title']) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($ann['content'])): ?>
+                                    <div class="d-dd-item-content"><?= htmlspecialchars(substr($ann['content'], 0, 100)) ?>...</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </li>
             <li><a href="dashboard.php">Home</a></li>
@@ -691,6 +819,67 @@ try {
 
         </div>
     <?php endif; ?>
+
+    <script>
+        function markAnnouncementAsRead(announcementId) {
+            fetch('mark_announcements_read.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    announcement_id: announcementId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the UI without reloading
+                    const annItem = document.getElementById('ann-item-' + announcementId);
+                    if (annItem) {
+                        annItem.classList.add('is-read');
+                        // Update the date element to show read badge
+                        const dateElement = annItem.querySelector('.d-dd-item-date');
+                        if (dateElement && !dateElement.querySelector('.d-dd-read-badge')) {
+                            const readBadge = document.createElement('span');
+                            readBadge.className = 'd-dd-read-badge';
+                            readBadge.textContent = '✓ Read';
+                            dateElement.appendChild(readBadge);
+                        }
+                    }
+                    // Update the notification badge count
+                    updateNotificationBadge();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function updateNotificationBadge() {
+            // Re-fetch to get updated unread count
+            fetch('get_unread_count.php')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector('.d-notification-badge');
+                if (data.unread_count > 0) {
+                    if (!badge) {
+                        // Create badge if it doesn't exist
+                        const notifLink = document.querySelector('.d-dropdown a');
+                        const newBadge = document.createElement('span');
+                        newBadge.className = 'd-notification-badge';
+                        newBadge.textContent = data.unread_count;
+                        notifLink.appendChild(newBadge);
+                    } else {
+                        badge.textContent = data.unread_count;
+                    }
+                } else {
+                    if (badge) {
+                        badge.remove();
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating badge:', error));
+        }
+    </script>
 
 </body>
 

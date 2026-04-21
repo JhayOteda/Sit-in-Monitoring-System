@@ -276,8 +276,13 @@ try {
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .modal-content {
@@ -296,6 +301,7 @@ try {
                 transform: translateY(-50px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -410,6 +416,39 @@ try {
             background: #d0d0d0;
             transform: translateY(-2px);
         }
+
+        .star-rating {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .star {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ccc;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+            transform: scale(1.2);
+        }
+
+        .star:hover~.star {
+            color: #ccc;
+        }
+
+        .rating-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 
@@ -465,7 +504,8 @@ try {
                                         <?php if (isset($feedback_status[$log['id']])): ?>
                                             <button class="feedback-btn" disabled title="Feedback already submitted">✓ Sent</button>
                                         <?php else: ?>
-                                            <button class="feedback-btn" onclick="openFeedbackModal(<?= $log['id'] ?>)">Feedback</button>
+                                            <button class="feedback-btn"
+                                                onclick="openFeedbackModal(<?= $log['id'] ?>)">Feedback</button>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -486,8 +526,19 @@ try {
             </div>
             <div class="modal-body">
                 <div class="modal-group">
+                    <label class="rating-label">Rate this sit-in (1-5 stars)</label>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                </div>
+                <div class="modal-group">
                     <label class="modal-label">Your Feedback</label>
-                    <textarea id="feedbackText" class="modal-textarea" placeholder="Enter your feedback message here..."></textarea>
+                    <textarea id="feedbackText" class="modal-textarea"
+                        placeholder="Enter your feedback message here..."></textarea>
                 </div>
                 <div class="modal-actions">
                     <button class="modal-btn-cancel" onclick="closeFeedbackModal()">Cancel</button>
@@ -499,24 +550,65 @@ try {
 
     <script>
         let currentLogId = null;
+        let currentRating = 0;
 
         function openFeedbackModal(logId) {
             currentLogId = logId;
+            currentRating = 0;
             document.getElementById('feedbackModal').classList.add('show');
             document.getElementById('feedbackText').value = '';
+
+            // Reset star rating
+            document.querySelectorAll('.star').forEach(star => {
+                star.classList.remove('active');
+            });
+
             document.getElementById('feedbackText').focus();
         }
 
         function closeFeedbackModal() {
             document.getElementById('feedbackModal').classList.remove('show');
             currentLogId = null;
+            currentRating = 0;
+        }
+
+        // Star rating functionality
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function () {
+                currentRating = this.getAttribute('data-rating');
+                updateStarDisplay(currentRating);
+            });
+
+            star.addEventListener('mouseover', function () {
+                const rating = this.getAttribute('data-rating');
+                updateStarDisplay(rating);
+            });
+        });
+
+        document.getElementById('starRating').addEventListener('mouseleave', function () {
+            updateStarDisplay(currentRating);
+        });
+
+        function updateStarDisplay(rating) {
+            document.querySelectorAll('.star').forEach(star => {
+                if (star.getAttribute('data-rating') <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
         }
 
         function submitFeedback() {
             const feedback = document.getElementById('feedbackText').value.trim();
-            
+
             if (!feedback) {
                 alert('Please enter your feedback message.');
+                return;
+            }
+
+            if (currentRating === 0) {
+                alert('Please select a rating.');
                 return;
             }
 
@@ -528,26 +620,27 @@ try {
                 },
                 body: JSON.stringify({
                     log_id: currentLogId,
-                    message: feedback
+                    message: feedback,
+                    rating: currentRating
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Feedback submitted successfully!');
-                    closeFeedbackModal();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while submitting feedback.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Feedback submitted successfully!');
+                        closeFeedbackModal();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while submitting feedback.');
+                });
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('feedbackModal');
             if (event.target == modal) {
                 closeFeedbackModal();

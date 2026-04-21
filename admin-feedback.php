@@ -8,7 +8,7 @@ require 'db.php';
 
 $feedback_list = [];
 try {
-    $stmt = $pdo->query("SELECT f.id, f.log_id, f.user_id, u.first_name, u.last_name, u.id_number, f.message, f.created_at 
+    $stmt = $pdo->query("SELECT f.id, f.log_id, f.user_id, u.first_name, u.last_name, u.id_number, f.message, f.rating, f.created_at 
                          FROM feedback f 
                          JOIN users u ON f.user_id = u.id 
                          ORDER BY f.created_at DESC");
@@ -124,33 +124,6 @@ try {
             color: var(--text-muted);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        table th {
-            background: var(--brand-1);
-            color: #fff;
-            padding: 0.7rem 0.9rem;
-            text-align: left;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        table td {
-            padding: 0.9rem 0.9rem;
-            border-bottom: 1px solid var(--border-soft);
-            color: var(--text-primary);
-        }
-
-        table tr:hover td {
-            background: #f8faf9;
-        }
-
         .feedback-message {
             max-width: 400px;
             word-wrap: break-word;
@@ -162,6 +135,124 @@ try {
             text-align: center;
             padding: 2rem;
             color: var(--text-muted);
+        }
+
+        .feedback-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feedback-card {
+            background: #fff;
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .feedback-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-soft);
+        }
+
+        .feedback-student-info {
+            flex: 1;
+        }
+
+        .feedback-student-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .feedback-student-id {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .feedback-rating {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .star-display {
+            font-size: 1.2rem;
+            color: #ffc107;
+        }
+
+        .rating-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        .feedback-body {
+            margin-bottom: 1rem;
+        }
+
+        .feedback-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .feedback-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: var(--input-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--brand-1);
+        }
+
+        .feedback-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-soft);
+        }
+
+        .feedback-date {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .feedback-counter {
+            background: var(--brand-1);
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -188,28 +279,40 @@ try {
                 <?php if (empty($feedback_list)): ?>
                     <div class="no-data">No feedback submitted yet.</div>
                 <?php else: ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Student Name</th>
-                                <th>ID Number</th>
-                                <th>Message</th>
-                                <th>Date Submitted</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($feedback_list as $i => $fb): ?>
-                                <tr>
-                                    <td><?= $i + 1 ?></td>
-                                    <td><?= htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']) ?></td>
-                                    <td><?= htmlspecialchars($fb['id_number']) ?></td>
-                                    <td class="feedback-message"><?= htmlspecialchars($fb['message']) ?></td>
-                                    <td><?= htmlspecialchars(date("M d, Y h:i A", strtotime($fb['created_at']))) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                    <div class="feedback-container">
+                        <?php foreach ($feedback_list as $i => $fb): ?>
+                            <div class="feedback-card">
+                                <div class="feedback-header">
+                                    <div class="feedback-student-info">
+                                        <div class="feedback-student-name">
+                                            <?= htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']) ?></div>
+                                        <div class="feedback-student-id">ID: <?= htmlspecialchars($fb['id_number']) ?></div>
+                                    </div>
+                                    <div class="feedback-rating">
+                                        <?php
+                                        $rating = isset($fb['rating']) ? (int) $fb['rating'] : 0;
+                                        for ($j = 1; $j <= 5; $j++) {
+                                            echo '<span class="star-display">' . ($j <= $rating ? '★' : '☆') . '</span>';
+                                        }
+                                        ?>
+                                        <span class="rating-text"><?= $rating ?>/5</span>
+                                    </div>
+                                </div>
+
+                                <div class="feedback-body">
+                                    <div class="feedback-label">Message</div>
+                                    <div class="feedback-text"><?= htmlspecialchars($fb['message']) ?></div>
+                                </div>
+
+                                <div class="feedback-footer">
+                                    <div class="feedback-date">
+                                        📅 <?= htmlspecialchars(date("M d, Y", strtotime($fb['created_at']))) ?> at
+                                        <?= htmlspecialchars(date("h:i A", strtotime($fb['created_at']))) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
