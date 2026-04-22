@@ -21,6 +21,7 @@ try {
             sl.time_out,
             u.id_number,
             u.first_name,
+            u.middle_name,
             u.last_name
         FROM sit_in_logs sl
         JOIN users u ON sl.user_id = u.id
@@ -228,7 +229,8 @@ try {
                             <?php foreach ($records as $record): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($record['id_number']) ?></td>
-                                    <td><?= htmlspecialchars($record['first_name'] . ' ' . $record['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($record['first_name'] . ($record['middle_name'] ? ' ' . $record['middle_name'] : '') . ' ' . $record['last_name']) ?>
+                                    </td>
                                     <td><?= htmlspecialchars($record['purpose']) ?></td>
                                     <td><?= htmlspecialchars($record['lab_room']) ?></td>
                                     <td><?= date('M d, Y H:i', strtotime($record['created_at'])) ?></td>

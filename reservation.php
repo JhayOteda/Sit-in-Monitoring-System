@@ -11,7 +11,7 @@ $success = $error = "";
 // Fetch user data to display ID and name
 $user = null;
 try {
-    $stmt = $pdo->prepare("SELECT id_number, first_name, last_name FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id_number, first_name, middle_name, last_name FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
@@ -486,8 +486,9 @@ try {
                             <div class="d-dd-item<?= $ann['is_read'] ? ' is-read' : '' ?>" id="ann-item-<?= $ann['id'] ?>"
                                 onclick="markAnnouncementAsRead(<?= $ann['id'] ?>)">
                                 <div class="d-dd-item-date">CCS Admin |
-                                    <?= date("M d, Y", strtotime($ann["created_at"])) ?>        <?php if ($ann['is_read']): ?><span
-                                            class="d-dd-read-badge">✓ Read</span><?php endif; ?></div>
+                                    <?= date("M d, Y", strtotime($ann["created_at"])) ?>         <?php if ($ann['is_read']): ?><span
+                                            class="d-dd-read-badge">✓ Read</span><?php endif; ?>
+                                </div>
                                 <?php if (!empty($ann['title'])): ?>
                                     <div class="d-dd-item-title"><?= htmlspecialchars($ann['title']) ?></div>
                                 <?php endif; ?>
@@ -529,7 +530,7 @@ try {
                             style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.5px;">
                             Name</div>
                         <div style="font-size: 1rem; font-weight: 600; color: var(--text-primary);">
-                            <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
+                            <?= htmlspecialchars($user['first_name'] . ($user['middle_name'] ? ' ' . $user['middle_name'] : '') . ' ' . $user['last_name']) ?>
                         </div>
                     </div>
                 <?php endif; ?>

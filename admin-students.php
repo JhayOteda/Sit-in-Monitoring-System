@@ -616,7 +616,8 @@ unset($student); // Important: unset the reference to prevent issues
                             <?php foreach ($students as $student): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($student["id_number"]) ?></td>
-                                    <td><?= htmlspecialchars($student["first_name"] . " " . $student["last_name"]) ?></td>
+                                    <td><?= htmlspecialchars($student["first_name"] . ($student["middle_name"] ? " " . $student["middle_name"] : "") . " " . $student["last_name"]) ?>
+                                    </td>
                                     <td><?= htmlspecialchars($student["course"]) ?></td>
                                     <td><?= htmlspecialchars($student["course_level"]) ?></td>
                                     <td><?= htmlspecialchars($student["email"]) ?></td>

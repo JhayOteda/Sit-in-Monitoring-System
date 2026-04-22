@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["user_id"]) && isset($
         try {
             $check_stmt = $pdo->prepare("SELECT id FROM sit_in_logs WHERE user_id = ? AND time_out IS NULL");
             $check_stmt->execute([$user_id]);
-            
+
             if ($check_stmt->rowCount() > 0) {
                 $error_message = "✗ This student already has an active sit-in session. Please end the current session first.";
             } else {
@@ -73,6 +73,7 @@ try {
             sl.created_at,
             u.id_number,
             u.first_name,
+            u.middle_name,
             u.last_name
         FROM sit_in_logs sl
         JOIN users u ON sl.user_id = u.id
@@ -304,7 +305,8 @@ try {
                             <?php foreach ($active_sitins as $sitin): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($sitin['id_number']) ?></td>
-                                    <td><?= htmlspecialchars($sitin['first_name'] . ' ' . $sitin['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($sitin['first_name'] . ($sitin['middle_name'] ? ' ' . $sitin['middle_name'] : '') . ' ' . $sitin['last_name']) ?>
+                                    </td>
                                     <td><?= htmlspecialchars($sitin['purpose']) ?></td>
                                     <td><?= htmlspecialchars($sitin['lab_room']) ?></td>
                                     <td><?= date('M d, Y H:i', strtotime($sitin['created_at'])) ?></td>

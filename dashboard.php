@@ -764,7 +764,7 @@ try {
                     <div class="d-divider"></div>
                     <ul class="d-info-list">
                         <li>👤 <span><b>Name:</b>
-                                <?= htmlspecialchars($user["first_name"] . " " . $user["last_name"]) ?></span></li>
+                                <?= htmlspecialchars($user["first_name"] . ($user["middle_name"] ? " " . $user["middle_name"] : "") . " " . $user["last_name"]) ?></span></li>
                         <li>🎓 <span><b>Course:</b> <?= htmlspecialchars($user["course"]) ?></span></li>
                         <li>↕️ <span><b>Year:</b> <?= htmlspecialchars($user["course_level"]) ?></span></li>
                         <li>✉️ <span><b>Email:</b> <?= htmlspecialchars($user["email"]) ?></span></li>

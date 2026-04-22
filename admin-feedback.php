@@ -8,7 +8,7 @@ require 'db.php';
 
 $feedback_list = [];
 try {
-    $stmt = $pdo->query("SELECT f.id, f.log_id, f.user_id, u.first_name, u.last_name, u.id_number, f.message, f.rating, f.created_at 
+    $stmt = $pdo->query("SELECT f.id, f.log_id, f.user_id, u.first_name, u.middle_name, u.last_name, u.id_number, f.message, f.rating, f.created_at 
                          FROM feedback f 
                          JOIN users u ON f.user_id = u.id 
                          ORDER BY f.created_at DESC");
@@ -285,7 +285,8 @@ try {
                                 <div class="feedback-header">
                                     <div class="feedback-student-info">
                                         <div class="feedback-student-name">
-                                            <?= htmlspecialchars($fb['first_name'] . ' ' . $fb['last_name']) ?></div>
+                                            <?= htmlspecialchars($fb['first_name'] . ($fb['middle_name'] ? ' ' . $fb['middle_name'] : '') . ' ' . $fb['last_name']) ?>
+                                        </div>
                                         <div class="feedback-student-id">ID: <?= htmlspecialchars($fb['id_number']) ?></div>
                                     </div>
                                     <div class="feedback-rating">

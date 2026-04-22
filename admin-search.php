@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         try {
             // Get user info - simple direct search
-            $stmt = $pdo->prepare("SELECT id, id_number, first_name, last_name FROM users WHERE id_number = ?");
+            $stmt = $pdo->prepare("SELECT id, id_number, first_name, middle_name, last_name FROM users WHERE id_number = ?");
             $stmt->execute([$id_number]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -480,7 +480,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <!-- Auto-open modal with search results -->
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
-                            openSearchModal(<?= $search_result['user']['id'] ?>, '<?= htmlspecialchars($search_result['user']['id_number'], ENT_QUOTES) ?>', '<?= htmlspecialchars($search_result['user']['first_name'] . ' ' . $search_result['user']['last_name'], ENT_QUOTES) ?>', <?= $search_result['total_sessions'] ?>, <?= $search_result['sessions_remaining'] ?>, JSON.parse('<?= json_encode($search_result['logs']) ?>'));
+                            openSearchModal(<?= $search_result['user']['id'] ?>, '<?= htmlspecialchars($search_result['user']['id_number'], ENT_QUOTES) ?>', '<?= htmlspecialchars($search_result['user']['first_name'] . ($search_result['user']['middle_name'] ? ' ' . $search_result['user']['middle_name'] : '') . ' ' . $search_result['user']['last_name'], ENT_QUOTES) ?>', <?= $search_result['total_sessions'] ?>, <?= $search_result['sessions_remaining'] ?>, JSON.parse('<?= json_encode($search_result['logs']) ?>'));
                         });
                     </script>
                 <?php endif; ?>

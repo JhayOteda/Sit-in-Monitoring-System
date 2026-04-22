@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
 
 $reservations = [];
 try {
-    $stmt = $pdo->query("SELECT r.*, u.id_number, u.first_name, u.last_name FROM reservations r JOIN users u ON r.user_id = u.id ORDER BY r.created_at DESC");
+    $stmt = $pdo->query("SELECT r.*, u.id_number, u.first_name, u.middle_name, u.last_name FROM reservations r JOIN users u ON r.user_id = u.id ORDER BY r.created_at DESC");
     $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
 }
@@ -334,7 +334,8 @@ try {
                             <?php foreach ($reservations as $r): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($r["id_number"]) ?></td>
-                                    <td><?= htmlspecialchars($r["first_name"] . " " . $r["last_name"]) ?></td>
+                                    <td><?= htmlspecialchars($r["first_name"] . ($r["middle_name"] ? " " . $r["middle_name"] : "") . " " . $r["last_name"]) ?>
+                                    </td>
                                     <td><?= htmlspecialchars(date("M d, Y", strtotime($r["date"]))) ?></td>
                                     <td><?= htmlspecialchars($r["time_in"]) ?></td>
                                     <td><?= htmlspecialchars($r["purpose"]) ?></td>
