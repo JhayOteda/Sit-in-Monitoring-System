@@ -81,9 +81,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $address
                 ]);
             }
-            $success = "Account created successfully! You can now log in.";
-            header("Location: " . $redirect_page);
-            exit;
+            $success = "Account created successfully! Your account has been created.";
+            // Clear form data after successful registration
+            $_POST = [];
 
         }
     }

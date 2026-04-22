@@ -11,11 +11,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_student'])) {
     $id_number = trim($_POST["id_number"]);
     $last_name = trim($_POST["last_name"]);
     $first_name = trim($_POST["first_name"]);
+    $middle_name = trim($_POST["middle_name"]);
     $course = trim($_POST["course"]);
     $course_level = trim($_POST["course_level"]);
     $password = trim($_POST["password"]);
     $repeat_pass = trim($_POST["repeat_password"]);
     $email = trim($_POST["email"]);
+    $address = trim($_POST["address"]);
 
     if (empty($id_number) || empty($last_name) || empty($first_name) || empty($course) || empty($course_level) || empty($password) || empty($repeat_pass) || empty($email)) {
         $_SESSION['error'] = "Please fill in all required fields.";
@@ -34,8 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_student'])) {
         } else {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
             try {
-                $stmt = $pdo->prepare("INSERT INTO users (id_number, last_name, first_name, course_level, password, email, course) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$id_number, $last_name, $first_name, $course_level, $hashed, $email, $course]);
+                $stmt = $pdo->prepare("INSERT INTO users (id_number, last_name, first_name, middle_name, course_level, password, email, course, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$id_number, $last_name, $first_name, $middle_name, $course_level, $hashed, $email, $course, $address]);
                 $_SESSION['success'] = "Student added successfully!";
                 header("Location: admin-students.php");
                 exit;
@@ -51,9 +53,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_student'])) {
     $student_id = intval($_POST['student_id']);
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
+    $middle_name = trim($_POST['middle_name']);
     $email = trim($_POST['email']);
     $course = trim($_POST['course']);
     $course_level = trim($_POST['course_level']);
+    $address = trim($_POST['address']);
 
     if (empty($first_name) || empty($last_name) || empty($email) || empty($course) || empty($course_level)) {
         $_SESSION['error'] = "Please fill in all required fields.";
@@ -61,8 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_student'])) {
         $_SESSION['error'] = "Please enter a valid email address.";
     } else {
         try {
-            $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, course = ?, course_level = ? WHERE id = ?");
-            $stmt->execute([$first_name, $last_name, $email, $course, $course_level, $student_id]);
+            $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, middle_name = ?, email = ?, course = ?, course_level = ?, address = ? WHERE id = ?");
+            $stmt->execute([$first_name, $last_name, $middle_name, $email, $course, $course_level, $address, $student_id]);
             $_SESSION['success'] = "Student information updated successfully!";
             header("Location: admin-students.php");
             exit;
@@ -76,6 +80,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_student'])) {
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
     $student_id = intval($_GET['id']);
     try {
+        // Delete related records first (to avoid foreign key constraint violation)
+        // Delete from feedback
+        $stmt = $pdo->prepare("DELETE FROM feedback WHERE user_id = ?");
+        $stmt->execute([$student_id]);
+
+        // Delete from announcement_reads
+        $stmt = $pdo->prepare("DELETE FROM announcement_reads WHERE user_id = ?");
+        $stmt->execute([$student_id]);
+
+        // Delete from sit_in_logs
+        $stmt = $pdo->prepare("DELETE FROM sit_in_logs WHERE user_id = ?");
+        $stmt->execute([$student_id]);
+
+        // Delete from reservations
+        $stmt = $pdo->prepare("DELETE FROM reservations WHERE user_id = ?");
+        $stmt->execute([$student_id]);
+
+        // Now delete the student
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$student_id]);
         $_SESSION['success'] = "Student deleted successfully!";
@@ -103,7 +125,7 @@ $students = [];
 $edit_student = null;
 
 try {
-    $stmt = $pdo->query("SELECT id, id_number, first_name, last_name, course, course_level, email FROM users ORDER BY last_name ASC");
+    $stmt = $pdo->query("SELECT id, id_number, first_name, last_name, middle_name, course, course_level, email, address FROM users ORDER BY last_name ASC");
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
 }
@@ -559,7 +581,9 @@ unset($student); // Important: unset the reference to prevent issues
                     <div class="card-header-title">👥 Students</div>
                     <div class="card-header-buttons">
                         <button class="btn-add" onclick="openAddModal()">+ Add Student</button>
-                        <a href="admin-students.php?action=reset_all_sessions" class="btn-reset" onclick="return confirm('Are you sure you want to reset all student sessions to 30? This action cannot be undone.')">Reset All Sessions</a>
+                        <a href="admin-students.php?action=reset_all_sessions" class="btn-reset"
+                            onclick="return confirm('Are you sure you want to reset all student sessions to 30? This action cannot be undone.')">Reset
+                            All Sessions</a>
                     </div>
                 </div>
             </div>
@@ -602,7 +626,7 @@ unset($student); // Important: unset the reference to prevent issues
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn btn-edit"
-                                                onclick="openEditModal(<?= $student['id'] ?>, '<?= htmlspecialchars($student['first_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['last_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['email'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course_level'], ENT_QUOTES) ?>')">Edit</button>
+                                                onclick="openEditModal(<?= $student['id'] ?>, '<?= htmlspecialchars($student['first_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['last_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES) ?>', '<?= htmlspecialchars($student['email'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course_level'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['address'] ?? '', ENT_QUOTES) ?>')">Edit</button>
                                             <a href="admin-students.php?action=delete&id=<?= $student['id'] ?>"
                                                 class="btn btn-delete"
                                                 onclick="return confirm('Are you sure you want to delete this student?')">Delete</a>
@@ -639,7 +663,12 @@ unset($student); // Important: unset the reference to prevent issues
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Email</label>
+                    <label class="form-label">Middle Name</label>
+                    <input type="text" class="form-control" id="middle_name" name="middle_name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"></label>Email</label>
                     <input type="email" class="form-control" id="email" name="email" required>
                 </div>
 
@@ -662,6 +691,11 @@ unset($student); // Important: unset the reference to prevent issues
                         <option value="3">3rd Year</option>
                         <option value="4">4th Year</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-control" id="address" name="address">
                 </div>
 
                 <div class="modal-footer">
@@ -695,6 +729,11 @@ unset($student); // Important: unset the reference to prevent issues
                 <div class="form-group">
                     <label class="form-label">First Name</label>
                     <input type="text" class="form-control" name="first_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Middle Name</label>
+                    <input type="text" class="form-control" name="middle_name">
                 </div>
 
                 <div class="form-group">
@@ -733,6 +772,11 @@ unset($student); // Important: unset the reference to prevent issues
                     <input type="password" class="form-control" name="repeat_password" required>
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-control" name="address">
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="closeAddModal()">Cancel</button>
                     <button type="submit" class="btn-save">Add Student</button>
@@ -742,13 +786,15 @@ unset($student); // Important: unset the reference to prevent issues
     </div>
 
     <script>
-        function openEditModal(id, firstName, lastName, email, course, courseLevel) {
+        function openEditModal(id, firstName, lastName, middleName, email, course, courseLevel, address) {
             document.getElementById('student_id').value = id;
             document.getElementById('first_name').value = firstName;
             document.getElementById('last_name').value = lastName;
+            document.getElementById('middle_name').value = middleName;
             document.getElementById('email').value = email;
             document.getElementById('course').value = course;
             document.getElementById('course_level').value = courseLevel;
+            document.getElementById('address').value = address;
             document.getElementById('editModal').style.display = 'block';
         }
 
