@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         try {
             // Get user info - simple direct search
-            $stmt = $pdo->prepare("SELECT id, id_number, first_name, middle_name, last_name FROM users WHERE id_number = ?");
+            $stmt = $pdo->prepare("SELECT id, id_number, first_name, middle_name, last_name, remaining_sessions FROM users WHERE id_number = ?");
             $stmt->execute([$id_number]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -35,10 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $logs = [];
                 }
 
-                // Calculate remaining sessions (30 - total logs)
-                $sessions_remaining = 30 - count($logs);
-                if ($sessions_remaining < 0)
-                    $sessions_remaining = 0;
+                // Get remaining sessions directly from users table
+                $sessions_remaining = $user['remaining_sessions'] ?? 30;
 
                 $search_result = [
                     'user' => $user,

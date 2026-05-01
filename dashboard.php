@@ -53,10 +53,12 @@ try {
 }
 
 $session_count = 0;
+$remaining_sessions = 30;
 try {
-    $sc = $pdo->prepare("SELECT COUNT(*) FROM sit_in_logs WHERE user_id = ?");
+    $sc = $pdo->prepare("SELECT remaining_sessions FROM users WHERE id = ?");
     $sc->execute([$user_id]);
-    $session_count = $sc->fetchColumn();
+    $result = $sc->fetch(PDO::FETCH_ASSOC);
+    $remaining_sessions = $result ? $result['remaining_sessions'] : 30;
 } catch (Exception $e) {
 }
 ?>
@@ -769,7 +771,7 @@ try {
                         <li>↕️ <span><b>Year:</b> <?= htmlspecialchars($user["course_level"]) ?></span></li>
                         <li>✉️ <span><b>Email:</b> <?= htmlspecialchars($user["email"]) ?></span></li>
                         <li>🪪 <span><b>Address:</b> <?= htmlspecialchars($user["address"] ?? "Not provided") ?></span></li>
-                        <li>🖥️ <span><b>Remaining Session:</b> <?= (30 - $session_count) ?></span></li>
+                        <li>🖥️ <span><b>Remaining Session:</b> <?= htmlspecialchars($remaining_sessions) ?></span></li>
                     </ul>
                 </div>
             </div>

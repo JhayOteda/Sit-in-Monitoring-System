@@ -10,6 +10,8 @@ require 'db.php';
 $total_students = 0;
 $current_sitin = 0;
 $total_sitin = 0;
+$lab_room_data = [];
+$programming_language_data = [];
 
 try {
     // Count all registered students (real-time from users table)
@@ -21,6 +23,14 @@ try {
 
     $stmt = $pdo->query("SELECT COUNT(*) FROM sit_in_logs");
     $total_sitin = $stmt->fetchColumn();
+
+    // Get lab room analytics
+    $stmt = $pdo->query("SELECT lab_room, COUNT(*) as count FROM sit_in_logs GROUP BY lab_room ORDER BY count DESC");
+    $lab_room_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Get programming language analytics
+    $stmt = $pdo->query("SELECT purpose, COUNT(*) as count FROM sit_in_logs WHERE purpose IS NOT NULL AND purpose != '' GROUP BY purpose ORDER BY count DESC");
+    $programming_language_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
 }
 
@@ -71,6 +81,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCS | Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -366,6 +377,44 @@ try {
         table tr:hover {
             background: #f8faf9;
         }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            padding: 0.5rem 0;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            max-height: 350px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 
@@ -405,6 +454,49 @@ try {
                     <div class="stat-box">
                         <div class="stat-label">Total Sit-In</div>
                         <div class="stat-value"><?= $total_sitin ?></div>
+                    </div>
+
+                    <!-- Analytics Charts -->
+                    <div style="border-top: 1px solid var(--border-soft); padding-top: 1.5rem; margin-top: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <!-- Lab Room Analytics -->
+                            <div>
+                                <h3
+                                    style="font-size: 0.85rem; margin-bottom: 0.8rem; font-family: 'Merriweather', serif; font-weight: 600; color: var(--text-primary);">
+                                    📍 Lab Room</h3>
+                                <?php if (empty($lab_room_data)): ?>
+                                    <div
+                                        style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">
+                                        No data available
+                                    </div>
+                                <?php else: ?>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <div class="chart-wrapper">
+                                            <canvas id="labRoomChart"></canvas>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Programming Language Analytics -->
+                            <div>
+                                <h3
+                                    style="font-size: 0.85rem; margin-bottom: 0.8rem; font-family: 'Merriweather', serif; font-weight: 600; color: var(--text-primary);">
+                                    💻 Programming Languages</h3>
+                                <?php if (empty($programming_language_data)): ?>
+                                    <div
+                                        style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">
+                                        No data available
+                                    </div>
+                                <?php else: ?>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <div class="chart-wrapper">
+                                            <canvas id="languageChart"></canvas>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -460,6 +552,161 @@ try {
         </div>
     </div>
 
-</body>
+    <script>
+        // Lab Room Chart Data
+        const labRoomLabels = <?= json_encode(array_column($lab_room_data, 'lab_room')) ?>;
+        const labRoomCounts = <?= json_encode(array_column($lab_room_data, 'count')) ?>;
 
-</html>
+        // Programming Language Chart Data
+        const languageLabels = <?= json_encode(array_column($programming_language_data, 'purpose')) ?>;
+        const languageCounts = <?= json_encode(array_column($programming_language_data, 'count')) ?>;
+
+        // Lab Room Color Map
+        const labRoomColorMap = {
+            '524': '#FF6B6B',    // Red
+            '544': '#4ECDC4',    // Teal
+            '526': '#45B7D1',    // Blue
+            '530': '#FFA07A',    // Light Salmon
+            '528': '#98D8C8'     // Mint
+        };
+
+        // Programming Language Color Map
+        const languageColorMap = {
+            'C Programming': '#2E86AB',     // Navy Blue
+            'C++': '#A23B72',               // Purple
+            'Java': '#F18F01',              // Orange
+            'Python': '#3A86FF',            // Bright Blue
+            'JavaScript': '#FB5607',        // Red Orange
+            'PHP': '#7209B7',               // Deep Purple
+            'C#': '#06A77D'                 // Teal
+        };
+
+        // Get lab room colors
+        function getLabRoomColors() {
+            return labRoomLabels.map(lab => labRoomColorMap[lab] || '#95E1D3');
+        }
+
+        // Get language colors
+        function getLanguageColors() {
+            return languageLabels.map(lang => languageColorMap[lang] || '#95E1D3');
+        }
+
+        // Lab Room Chart
+        if (labRoomLabels.length > 0) {
+            const labRoomCtx = document.getElementById('labRoomChart').getContext('2d');
+            const labRoomChart = new Chart(labRoomCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labRoomLabels.map(lab => 'Lab ' + lab),
+                    datasets: [{
+                        data: labRoomCounts,
+                        backgroundColor: getLabRoomColors(),
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                color: '#1f2f27',
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                }
+                            },
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            displayColors: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Programming Language Chart
+        if (languageLabels.length > 0) {
+            const languageCtx = document.getElementById('languageChart').getContext('2d');
+            const languageChart = new Chart(languageCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: languageLabels,
+                    datasets: [{
+                        data: languageCounts,
+                        backgroundColor: getLanguageColors(),
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                color: '#1f2f27',
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': ' + value + ' (' + percentage + '%)';
+                                }
+                            },
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            displayColors: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Real-time refresh - Update charts every 30 seconds
+        setInterval(function () {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the new data from the page
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+
+                    // You can add logic here to update charts if needed
+                    // For now, page refresh happens automatically
+                })
+                .catch(error => console.log('Auto-refresh error:', error));
+        }, 30000); // Refresh every 30 seconds
+    </script>

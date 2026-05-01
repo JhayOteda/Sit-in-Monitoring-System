@@ -350,6 +350,7 @@ try {
         }
 
         .badge-done,
+        .badge-completed,
         .badge-approved {
             background: #e6f4ea;
             color: #155724;
@@ -611,8 +612,9 @@ try {
                             <div class="d-dd-item<?= $ann['is_read'] ? ' is-read' : '' ?>" id="ann-item-<?= $ann['id'] ?>"
                                 onclick="markAnnouncementAsRead(<?= $ann['id'] ?>)">
                                 <div class="d-dd-item-date">CCS Admin |
-                                    <?= date("M d, Y", strtotime($ann["created_at"])) ?>        <?php if ($ann['is_read']): ?><span
-                                            class="d-dd-read-badge">✓ Read</span><?php endif; ?></div>
+                                    <?= date("M d, Y", strtotime($ann["created_at"])) ?>         <?php if ($ann['is_read']): ?><span
+                                            class="d-dd-read-badge">✓ Read</span><?php endif; ?>
+                                </div>
                                 <?php if (!empty($ann['title'])): ?>
                                     <div class="d-dd-item-title"><?= htmlspecialchars($ann['title']) ?></div>
                                 <?php endif; ?>
@@ -645,6 +647,7 @@ try {
                                 <th>Date</th>
                                 <th>Time In</th>
                                 <th>Time Out</th>
+                                <th>Duration</th>
                                 <th>Purpose</th>
                                 <th>Status</th>
                                 <th>Action</th>
@@ -658,9 +661,21 @@ try {
                                     <td><?= htmlspecialchars(date("h:i A", strtotime($log["created_at"]))) ?></td>
                                     <td><?= !empty($log["time_out"]) ? htmlspecialchars(date("h:i A", strtotime($log["time_out"]))) : "—" ?>
                                     </td>
+                                    <td>
+                                        <?php
+                                        if (!empty($log["time_out"])) {
+                                            $time_in = new DateTime($log["created_at"]);
+                                            $time_out = new DateTime($log["time_out"]);
+                                            $duration = $time_in->diff($time_out);
+                                            echo htmlspecialchars($duration->format("%h:%I"));
+                                        } else {
+                                            echo "—";
+                                        }
+                                        ?>
+                                    </td>
                                     <td><?= htmlspecialchars($log["purpose"] ?? "—") ?></td>
                                     <td><span
-                                            class="badge badge-<?= strtolower($log['status'] ?? 'done') ?>"><?= htmlspecialchars($log["status"] ?? "Done") ?></span>
+                                            class="badge badge-<?= strtolower($log['status'] ?? 'completed') ?>"><?= htmlspecialchars($log["status"] ?? "Completed") ?></span>
                                     </td>
                                     <td>
                                         <?php if (isset($feedback_status[$log['id']])): ?>

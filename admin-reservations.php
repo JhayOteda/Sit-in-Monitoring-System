@@ -41,6 +41,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
                         $sitin_stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
                         $sitin_stmt->execute([$user_id, $purpose, $lab_room]);
 
+                        // Decrement remaining_sessions
+                        $decrement_stmt = $pdo->prepare("UPDATE users SET remaining_sessions = remaining_sessions - 1 WHERE id = ? AND remaining_sessions > 0");
+                        $decrement_stmt->execute([$user_id]);
+
                         // Update reservation status
                         $stmt = $pdo->prepare("UPDATE reservations SET status = ? WHERE id = ?");
                         $stmt->execute([$new_status, $reservation_id]);

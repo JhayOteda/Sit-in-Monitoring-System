@@ -111,7 +111,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 // Handle reset all sessions action
 if (isset($_GET['action']) && $_GET['action'] === 'reset_all_sessions') {
     try {
-        $stmt = $pdo->prepare("DELETE FROM sit_in_logs");
+        $stmt = $pdo->prepare("UPDATE users SET remaining_sessions = 30");
         $stmt->execute();
         $_SESSION['success'] = "All sessions have been reset successfully! All students now have 30 sessions remaining.";
     } catch (Exception $e) {
@@ -130,14 +130,15 @@ try {
 } catch (Exception $e) {
 }
 
-// Add session count for each student
+// Update session count for each student (remaining sessions from remaining_sessions column)
 foreach ($students as &$student) {
     try {
-        $count_stmt = $pdo->prepare("SELECT COUNT(*) FROM sit_in_logs WHERE user_id = ?");
+        $count_stmt = $pdo->prepare("SELECT remaining_sessions FROM users WHERE id = ?");
         $count_stmt->execute([$student['id']]);
-        $student['session_count'] = $count_stmt->fetchColumn();
+        $result = $count_stmt->fetch(PDO::FETCH_ASSOC);
+        $student['remaining_sessions'] = $result ? $result['remaining_sessions'] : 30;
     } catch (Exception $e) {
-        $student['session_count'] = 0;
+        $student['remaining_sessions'] = 30;
     }
 }
 unset($student); // Important: unset the reference to prevent issues
@@ -622,7 +623,7 @@ unset($student); // Important: unset the reference to prevent issues
                                     <td><?= htmlspecialchars($student["course_level"]) ?></td>
                                     <td><?= htmlspecialchars($student["email"]) ?></td>
                                     <td style="text-align: center; font-weight: 700; color: var(--brand-1);">
-                                        <?= (30 - ($student["session_count"] ?? 0)) ?>
+                                        <?= ($student["remaining_sessions"] ?? 30) ?>
                                     </td>
                                     <td>
                                         <div class="action-buttons">

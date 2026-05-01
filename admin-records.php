@@ -8,6 +8,28 @@ require 'db.php';
 
 $success_message = "";
 
+// Handle delete record
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete_record_id'])) {
+    $record_id = $_POST['delete_record_id'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM sit_in_logs WHERE id = ?");
+        $stmt->execute([$record_id]);
+        $success_message = "Record deleted successfully!";
+    } catch (Exception $e) {
+        $success_message = "Error deleting record.";
+    }
+}
+
+// Handle delete all records
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete_all'])) {
+    try {
+        $pdo->query("DELETE FROM sit_in_logs");
+        $success_message = "All records deleted successfully!";
+    } catch (Exception $e) {
+        $success_message = "Error deleting all records.";
+    }
+}
+
 // Fetch completed sit-in records with student information
 $records = [];
 try {
@@ -179,6 +201,87 @@ try {
             margin-bottom: 1rem;
             font-weight: 600;
         }
+
+        .search-delete-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .search-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        .search-field input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 2px solid var(--border-soft);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            outline: none;
+            background: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+
+        .search-field input:focus {
+            border-color: var(--brand-1);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(47, 122, 89, 0.12);
+        }
+
+        .btn-delete-all {
+            padding: 0.6rem 1.2rem;
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete-all:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete-row {
+            padding: 0.35rem 0.7rem;
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-delete-row:hover {
+            background: #c82333;
+        }
+
+        .no-records-message {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+        }
     </style>
 </head>
 
@@ -210,6 +313,21 @@ try {
                     <?php unset($_SESSION['success']); ?>
                 <?php endif; ?>
 
+                <!-- Search and Delete All Section -->
+                <div class="search-delete-container">
+                    <div class="search-field">
+                        <label for="searchInput">Search ID Number or Name</label>
+                        <input type="text" id="searchInput" placeholder="Enter ID number or student name...">
+                    </div>
+                    <?php if (!empty($records)): ?>
+                        <form method="POST" style="display: inline;"
+                            onsubmit="return confirm('Are you sure you want to delete ALL sit-in records? This cannot be undone.');">
+                            <input type="hidden" name="delete_all" value="1">
+                            <button type="submit" class="btn-delete-all">Delete All History</button>
+                        </form>
+                    <?php endif; ?>
+                </div>
+
                 <?php if (empty($records)): ?>
                     <div class="no-data">No sit-in records found yet.</div>
                 <?php else: ?>
@@ -223,11 +341,13 @@ try {
                                 <th>Check-In Time</th>
                                 <th>Check-Out Time</th>
                                 <th>Duration</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="recordsTable">
                             <?php foreach ($records as $record): ?>
-                                <tr>
+                                <tr class="record-row" data-id-number="<?= htmlspecialchars($record['id_number']) ?>"
+                                    data-student-name="<?= htmlspecialchars($record['first_name'] . ($record['middle_name'] ? ' ' . $record['middle_name'] : '') . ' ' . $record['last_name']) ?>">
                                     <td><?= htmlspecialchars($record['id_number']) ?></td>
                                     <td><?= htmlspecialchars($record['first_name'] . ($record['middle_name'] ? ' ' . $record['middle_name'] : '') . ' ' . $record['last_name']) ?>
                                     </td>
@@ -255,6 +375,13 @@ try {
                                         }
                                         ?>
                                     </td>
+                                    <td>
+                                        <form method="POST" style="display: inline;"
+                                            onsubmit="return confirm('Delete this record? This action cannot be undone.');">
+                                            <input type="hidden" name="delete_record_id" value="<?= $record['id'] ?>">
+                                            <button type="submit" class="btn-delete-row">Delete</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -263,6 +390,46 @@ try {
             </div>
         </div>
     </div>
+
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const recordsTable = document.getElementById('recordsTable');
+        const recordRows = recordsTable ? recordsTable.querySelectorAll('.record-row') : [];
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                const searchTerm = this.value.toLowerCase().trim();
+
+                recordRows.forEach(row => {
+                    const idNumber = row.getAttribute('data-id-number').toLowerCase();
+                    const studentName = row.getAttribute('data-student-name').toLowerCase();
+
+                    if (idNumber.includes(searchTerm) || studentName.includes(searchTerm) || searchTerm === '') {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Check if any rows are visible
+                const visibleRows = Array.from(recordRows).some(row => row.style.display !== 'none');
+                if (!visibleRows && searchTerm !== '') {
+                    if (!document.querySelector('.no-records-message')) {
+                        const message = document.createElement('tr');
+                        message.className = 'no-records-message';
+                        message.innerHTML = '<td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No records found matching your search.</td>';
+                        recordsTable.appendChild(message);
+                    }
+                } else {
+                    const message = document.querySelector('.no-records-message');
+                    if (message) {
+                        message.remove();
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

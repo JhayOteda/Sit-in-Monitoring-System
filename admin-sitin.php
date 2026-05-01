@@ -29,6 +29,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["user_id"]) && isset($
                 try {
                     $stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
                     $stmt->execute([$user_id, $purpose, $lab_room]);
+
+                    // Decrement remaining_sessions
+                    $decrement_stmt = $pdo->prepare("UPDATE users SET remaining_sessions = remaining_sessions - 1 WHERE id = ? AND remaining_sessions > 0");
+                    $decrement_stmt->execute([$user_id]);
+
                     $success_message = "✓ Sit-In session created successfully!";
                 } catch (Exception $e) {
                     $error_message = "✗ Error creating sit-in: " . $e->getMessage();
