@@ -122,7 +122,8 @@ try {
             justify-content: space-between;
             padding: 0 1.5rem;
             height: 48px;
-            position: relative;
+            position: sticky;
+            top: 0;
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
         }
