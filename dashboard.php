@@ -69,6 +69,10 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCS | Dashboard</title>
+    </style>
+    <link rel="stylesheet" href="assets/dark-mode.css">
+    <script src="assets/dark-mode.js" defer></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap');
@@ -103,7 +107,6 @@ try {
             font-family: 'Nunito Sans', sans-serif;
             background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
         }
-
         /* ── NAVBAR ── */
         .d-nav {
             background: var(--nav-bg);
@@ -508,7 +511,7 @@ try {
 
         .ef-control:focus {
             border-color: var(--brand-1);
-            background: #fff;
+            background: var(--input-bg);
             box-shadow: 0 0 0 4px rgba(47, 122, 89, 0.15);
         }
 

@@ -359,7 +359,7 @@ try {
 
         .ef-control:focus {
             border-color: var(--brand-1);
-            background: #fff;
+            background: var(--input-bg);
             box-shadow: 0 0 0 4px rgba(47, 122, 89, 0.15);
         }
 
@@ -468,6 +468,8 @@ try {
             font-weight: 600;
         }
     </style>
+    <link rel="stylesheet" href="assets/dark-mode.css">
+    <script src="assets/dark-mode.js" defer></script>
 </head>
 
 <body>

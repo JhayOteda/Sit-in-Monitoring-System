@@ -82,6 +82,9 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCS | Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </style>
+    <link rel="stylesheet" href="assets/dark-mode.css">
+    <script src="assets/dark-mode.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -113,6 +116,8 @@ try {
             background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
             min-height: 100vh;
         }
+
+
 
         nav {
             background: var(--nav-bg);
@@ -260,7 +265,7 @@ try {
 
         .form-control:focus {
             border-color: var(--brand-1);
-            background: #fff;
+            background: var(--input-bg);
             box-shadow: 0 0 0 3px rgba(47, 122, 89, 0.12);
         }
 
@@ -594,6 +599,11 @@ try {
             return languageLabels.map(lang => languageColorMap[lang] || '#95E1D3');
         }
 
+        // Get theme-aware chart label color
+        function getChartLabelColor() {
+            return document.documentElement.classList.contains('dark-mode') ? '#e6efe7' : '#1f2f27';
+        }
+
         // Lab Room Chart
         if (labRoomLabels.length > 0) {
             const labRoomCtx = document.getElementById('labRoomChart').getContext('2d');
@@ -620,7 +630,7 @@ try {
                                     size: 12,
                                     weight: '600'
                                 },
-                                color: '#1f2f27',
+                                color: getChartLabelColor(),
                                 padding: 15,
                                 usePointStyle: true
                             }
@@ -639,7 +649,9 @@ try {
                             titleFont: { size: 13, weight: 'bold' },
                             bodyFont: { size: 12 },
                             padding: 10,
-                            displayColors: true
+                            displayColors: true,
+                            titleColor: '#fff',
+                            bodyColor: '#fff'
                         }
                     }
                 }
@@ -672,7 +684,7 @@ try {
                                     size: 12,
                                     weight: '600'
                                 },
-                                color: '#1f2f27',
+                                color: getChartLabelColor(),
                                 padding: 15,
                                 usePointStyle: true
                             }
@@ -691,25 +703,25 @@ try {
                             titleFont: { size: 13, weight: 'bold' },
                             bodyFont: { size: 12 },
                             padding: 10,
-                            displayColors: true
+                            displayColors: true,
+                            titleColor: '#fff',
+                            bodyColor: '#fff'
                         }
                     }
                 }
             });
         }
 
-        // Real-time refresh - Update charts every 30 seconds
-        setInterval(function () {
-            fetch(window.location.href)
-                .then(response => response.text())
-                .then(html => {
-                    // Parse the new data from the page
-                    const parser = new DOMParser();
-                    const newDoc = parser.parseFromString(html, 'text/html');
-
-                    // You can add logic here to update charts if needed
-                    // For now, page refresh happens automatically
-                })
-                .catch(error => console.log('Auto-refresh error:', error));
-        }, 30000); // Refresh every 30 seconds
+        // Real-time refresh - Update charts every 30 seconds (disabled)
+        // setInterval(function () {
+        //     fetch(window.location.href)
+        //         .then(response => response.text())
+        //         .then(html => {
+        //             // Parse the new data from the page
+        //             const parser = new DOMParser();
+        //             const newDoc = parser.parseFromString(html, 'text/html');
+        //             // You can add logic here to update charts if needed
+        //         })
+        //         .catch(error => console.log('Auto-refresh error:', error));
+        // }, 30000); // Refresh every 30 seconds
     </script>
