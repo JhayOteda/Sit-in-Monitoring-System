@@ -599,118 +599,167 @@ try {
             return languageLabels.map(lang => languageColorMap[lang] || '#95E1D3');
         }
 
-        // Get theme-aware chart label color
+        // Get theme-aware chart label color - white when dark, black when light
         function getChartLabelColor() {
-            return document.documentElement.classList.contains('dark-mode') ? '#e6efe7' : '#1f2f27';
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            const color = isDark ? '#ffffff' : '#000000';
+            console.log('Chart label color check - isDark:', isDark, 'classList:', document.documentElement.className, 'color:', color);
+            return color;
         }
 
-        // Lab Room Chart
-        if (labRoomLabels.length > 0) {
-            const labRoomCtx = document.getElementById('labRoomChart').getContext('2d');
-            const labRoomChart = new Chart(labRoomCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: labRoomLabels.map(lab => 'Lab ' + lab),
-                    datasets: [{
-                        data: labRoomCounts,
-                        backgroundColor: getLabRoomColors(),
-                        borderColor: '#ffffff',
-                        borderWidth: 2,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                },
-                                color: getChartLabelColor(),
-                                padding: 15,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return label + ': ' + value + ' (' + percentage + '%)';
+        // Initialize charts function - called after theme is loaded
+        function initializeCharts() {
+            console.log('Initializing charts, dark mode:', document.documentElement.classList.contains('dark-mode'));
+
+            // Lab Room Chart
+            if (labRoomLabels.length > 0) {
+                const labRoomCtx = document.getElementById('labRoomChart').getContext('2d');
+                window.labRoomChart = new Chart(labRoomCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labRoomLabels.map(lab => 'Lab ' + lab),
+                        datasets: [{
+                            data: labRoomCounts,
+                            backgroundColor: getLabRoomColors(),
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        size: 12,
+                                        weight: '600'
+                                    },
+                                    color: getChartLabelColor(),
+                                    padding: 15,
+                                    usePointStyle: true
                                 }
                             },
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleFont: { size: 13, weight: 'bold' },
-                            bodyFont: { size: 12 },
-                            padding: 10,
-                            displayColors: true,
-                            titleColor: '#fff',
-                            bodyColor: '#fff'
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return label + ': ' + value + ' (' + percentage + '%)';
+                                    }
+                                },
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 10,
+                                displayColors: true,
+                                titleColor: '#fff',
+                                bodyColor: '#fff'
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+
+            // Programming Language Chart
+            if (languageLabels.length > 0) {
+                const languageCtx = document.getElementById('languageChart').getContext('2d');
+                window.languageChart = new Chart(languageCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: languageLabels,
+                        datasets: [{
+                            data: languageCounts,
+                            backgroundColor: getLanguageColors(),
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        size: 12,
+                                        weight: '600'
+                                    },
+                                    color: getChartLabelColor(),
+                                    padding: 15,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return label + ': ' + value + ' (' + percentage + '%)';
+                                    }
+                                },
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 10,
+                                displayColors: true,
+                                titleColor: '#fff',
+                                bodyColor: '#fff'
+                            }
+                        }
+                    }
+                });
+            }
         }
 
-        // Programming Language Chart
-        if (languageLabels.length > 0) {
-            const languageCtx = document.getElementById('languageChart').getContext('2d');
-            const languageChart = new Chart(languageCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: languageLabels,
-                    datasets: [{
-                        data: languageCounts,
-                        backgroundColor: getLanguageColors(),
-                        borderColor: '#ffffff',
-                        borderWidth: 2,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                },
-                                color: getChartLabelColor(),
-                                padding: 15,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return label + ': ' + value + ' (' + percentage + '%)';
-                                }
-                            },
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            titleFont: { size: 13, weight: 'bold' },
-                            bodyFont: { size: 12 },
-                            padding: 10,
-                            displayColors: true,
-                            titleColor: '#fff',
-                            bodyColor: '#fff'
-                        }
-                    }
+        // Wait for dark mode script to finish, then initialize charts with proper delay
+        function waitForDarkMode() {
+            // Keep checking until we see the dark-mode class applied from localStorage
+            let attempts = 0;
+            const maxAttempts = 50; // 2.5 seconds max wait
+
+            const checkAndInit = function () {
+                attempts++;
+                // Initialize if we've waited long enough or if we've made enough attempts
+                if (attempts >= maxAttempts || document.documentElement.classList.contains('dark-mode') || localStorage.getItem('theme-preference')) {
+                    console.log('Dark mode check complete. Initializing charts. Dark mode:', document.documentElement.classList.contains('dark-mode'));
+                    initializeCharts();
+                } else {
+                    setTimeout(checkAndInit, 50);
                 }
-            });
+            };
+
+            checkAndInit();
         }
+
+        // Start waiting for dark mode on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForDarkMode);
+        } else {
+            waitForDarkMode();
+        }
+
+        // Listen for theme changes and update charts dynamically
+        window.addEventListener('theme-changed', function () {
+            console.log('Theme changed event received. Updating charts...');
+            // Update chart colors when theme changes
+            if (window.labRoomChart) {
+                window.labRoomChart.options.plugins.legend.labels.color = getChartLabelColor();
+                window.labRoomChart.update();
+            }
+            if (window.languageChart) {
+                window.languageChart.options.plugins.legend.labels.color = getChartLabelColor();
+                window.languageChart.update();
+            }
+        });
 
         // Real-time refresh - Update charts every 30 seconds (disabled)
         // setInterval(function () {

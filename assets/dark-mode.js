@@ -16,12 +16,19 @@
         if (!navLinks) return null;
 
         // avoid inserting multiple toggles
-        if (document.getElementById('themeToggle')) return document.getElementById('themeToggle');
+        const existingToggle = document.getElementById('themeToggle');
+        if (existingToggle) {
+            const existingItem = existingToggle.parentElement;
+            if (existingItem && existingItem.parentElement === navLinks && navLinks.lastElementChild !== existingItem) {
+                navLinks.appendChild(existingItem);
+            }
+            return existingToggle;
+        }
 
         const li = document.createElement('li');
         li.style.listStyle = 'none';
         li.appendChild(createToggle());
-        navLinks.insertBefore(li, navLinks.lastElementChild || null);
+        navLinks.appendChild(li);
         return document.getElementById('themeToggle');
     }
 
@@ -43,6 +50,12 @@
             } else {
                 html.classList.add('dark-mode'); toggleEl.classList.add('dark'); localStorage.setItem('theme-preference','dark');
             }
+            // Dispatch event so pages can respond to theme change
+            window.dispatchEvent(new Event('theme-changed'));
+            // Also reload page to ensure all charts re-initialize with correct colors
+            setTimeout(function() {
+                location.reload();
+            }, 100);
         });
     }
 

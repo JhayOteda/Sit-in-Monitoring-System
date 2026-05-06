@@ -117,6 +117,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </li>
             <li><a href="login.php">Login</a></li>
             <li><a href="Register.php">Register</a></li>
+            <li>
+                <div class="theme-toggle" id="themeToggle"><span class="theme-toggle-icon moon">🌙</span><span
+                        class="theme-toggle-icon sun">☀️</span>
+                    <div class="theme-toggle-slider"></div>
+                </div>
+            </li>
         </ul>
     </nav>
 

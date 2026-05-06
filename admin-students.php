@@ -676,7 +676,7 @@ unset($student); // Important: unset the reference to prevent issues
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"></label>Email</label>
+                    <label class="form-label">Email</label>
                     <input type="email" class="form-control" id="email" name="email" required>
                 </div>
 

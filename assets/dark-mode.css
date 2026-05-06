@@ -56,10 +56,256 @@ html.dark-mode .alert-success { background: #1d3a28; color: #7dd386; border: 1px
 .theme-toggle-slider { width:22px; height:22px; background: rgba(255,255,255,0.95); border-radius:50%; position:absolute; left:4px; transition:left 0.25s ease; display:flex; align-items:center; justify-content:center; font-size:0.75rem; }
 .theme-toggle.dark .theme-toggle-slider { left:26px; }
 .theme-toggle-icon { position:absolute; font-size:0.9rem; transition:opacity 0.25s ease; }
-.theme-toggle-icon.moon { left:6px; opacity:1; }
-.theme-toggle-icon.sun { right:6px; opacity:0; }
-.theme-toggle.dark .theme-toggle-icon.moon { opacity:0; }
-.theme-toggle.dark .theme-toggle-icon.sun { opacity:1; }
+.theme-toggle-icon.moon { left:6px; opacity:0; }
+.theme-toggle-icon.sun { right:6px; opacity:1; }
+.theme-toggle.dark .theme-toggle-icon.moon { opacity:1; }
+.theme-toggle.dark .theme-toggle-icon.sun { opacity:0; }
 
 /* Smooth transitions for color changes */
 body { transition: background 0.25s ease, color 0.25s ease; }
+
+/* Chart legend text - force white in dark mode */
+html.dark-mode canvas {
+    filter: brightness(0.95);
+}
+
+/* Force chart text to white when dark mode is on */
+html.dark-mode .chartjs-render-monitor { 
+    color: #ffffff !important; 
+}
+
+html.dark-mode [class*="chart"] {
+    color: #ffffff !important;
+}
+
+/* Announcement text visibility in dark mode */
+html.dark-mode .d-ann-text {
+    background: #252d33 !important;
+    color: #ffffff !important;
+}
+
+html.dark-mode .d-ann-item {
+    border-bottom-color: #30363b !important;
+}
+
+html.dark-mode .d-ann-meta {
+    color: #8b9299 !important;
+}
+
+/* Notification dropdown dark mode */
+html.dark-mode .d-dd-menu {
+    background: #1e2328 !important;
+    border-color: #30363b !important;
+}
+
+html.dark-mode .d-dd-menu .d-dd-header {
+    background: #252d33 !important;
+    color: #ffffff !important;
+    border-bottom-color: #30363b !important;
+}
+
+html.dark-mode .d-dd-item {
+    border-bottom-color: #30363b !important;
+}
+
+html.dark-mode .d-dd-item:hover {
+    background: #2a3238 !important;
+}
+
+html.dark-mode .d-dd-item-date {
+    color: #8b9299 !important;
+}
+
+html.dark-mode .d-dd-item-title {
+    color: #ffffff !important;
+}
+
+html.dark-mode .d-dd-item-content {
+    color: #b0b8bf !important;
+}
+
+html.dark-mode .d-dd-item.is-read {
+    opacity: 0.7 !important;
+    background: #1a1f23 !important;
+}
+
+html.dark-mode .d-dd-item.is-read .d-dd-item-date {
+    color: #6b7278 !important;
+}
+
+html.dark-mode .d-dd-item.is-read .d-dd-item-title {
+    color: #b0b8bf !important;
+}
+
+html.dark-mode .d-dd-item.is-read .d-dd-item-content {
+    color: #8b9299 !important;
+}
+
+/* Edit Profile page dark mode */
+html.dark-mode .d-edit-wrap {
+    background: #0d1117 !important;
+}
+
+html.dark-mode .d-edit-card {
+    background: #1e2328 !important;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark-mode .ef-label {
+    color: #8b9299 !important;
+}
+
+html.dark-mode .ef-control {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: #30363b !important;
+}
+
+html.dark-mode .ef-control:focus {
+    border-color: var(--brand-1) !important;
+    box-shadow: 0 0 0 4px rgba(63, 163, 112, 0.2) !important;
+}
+
+html.dark-mode .ef-control[readonly] {
+    background: #252d33 !important;
+    color: var(--text-primary) !important;
+}
+
+html.dark-mode .ef-file-label {
+    background: var(--brand-1) !important;
+    color: #fff !important;
+}
+
+html.dark-mode .d-card-head {
+    background: var(--brand-1) !important;
+    color: #fff !important;
+}
+
+html.dark-mode .d-card-body {
+    color: var(--text-primary) !important;
+}
+
+/* History table hover effect dark mode */
+html.dark-mode table tr:hover td {
+    background: #2a3238 !important;
+}
+
+html.dark-mode table tbody tr:hover {
+    background: #2a3238 !important;
+}
+
+/* Admin search page dark mode */
+html.dark-mode .search-form input {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: #30363b !important;
+}
+
+html.dark-mode .search-form input::placeholder {
+    color: #8b9299 !important;
+}
+
+html.dark-mode .result-card {
+    background: #252d33 !important;
+    color: var(--text-primary) !important;
+    border-left-color: var(--brand-1) !important;
+}
+
+html.dark-mode .result-header {
+    color: #ffffff !important;
+}
+
+html.dark-mode .info-label {
+    color: #8b9299 !important;
+}
+
+html.dark-mode .info-value {
+    color: var(--text-primary) !important;
+}
+
+/* Modal dark mode */
+html.dark-mode .modal-content {
+    background: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+html.dark-mode .modal-header h2 {
+    color: #ffffff !important;
+}
+
+html.dark-mode .form-control {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: #30363b !important;
+}
+
+html.dark-mode .form-control:focus {
+    border-color: var(--brand-1) !important;
+    box-shadow: 0 0 0 3px rgba(63, 163, 112, 0.12) !important;
+}
+
+html.dark-mode .form-label {
+    color: #8b9299 !important;
+}
+
+/* Cards and alerts dark mode */
+html.dark-mode .card {
+    background: var(--card-bg) !important;
+}
+
+html.dark-mode .card-head {
+    background: var(--brand-1) !important;
+    color: #fff !important;
+}
+
+html.dark-mode .card-body {
+    color: var(--text-primary) !important;
+}
+
+html.dark-mode .alert-error {
+    background: #3d2122 !important;
+    color: #ff9a9a !important;
+    border-color: #6d3434 !important;
+}
+
+html.dark-mode .alert-success {
+    background: #1d3a28 !important;
+    color: #7dd386 !important;
+    border-color: #3d6b4d !important;
+}
+
+html.dark-mode .select-dropdown {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: #30363b !important;
+}
+
+/* Feedback page dark mode fixes */
+
+html.dark-mode .feedback-card {
+    background: var(--card-bg) !important;
+    border-color: #30363b !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45) !important;
+    color: var(--text-primary) !important;
+}
+
+html.dark-mode .feedback-student-name {
+    color: var(--text-primary) !important;
+}
+
+html.dark-mode .feedback-student-id,
+html.dark-mode .rating-text,
+html.dark-mode .feedback-date,
+html.dark-mode .feedback-label {
+    color: #8b9299 !important;
+}
+
+html.dark-mode .feedback-text {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border-left-color: var(--brand-1) !important;
+}
+
+html.dark-mode .star-display {
+    color: #ffc107 !important;
+}
