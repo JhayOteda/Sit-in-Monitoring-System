@@ -810,6 +810,10 @@ try {
                     if (data.success) {
                         alert('Feedback submitted successfully!');
                         closeFeedbackModal();
+                        // Reload page to show updated status
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
                     } else {
                         alert('Error: ' + data.message);
                     }
