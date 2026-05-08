@@ -60,6 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <title>CCS | Admin - Search</title>
     </style>
     <link rel="stylesheet" href="assets/dark-mode.css">
+    <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
@@ -331,12 +332,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         .modal-content {
             background-color: var(--card-bg);
-            margin: 5% auto;
+            margin: 20px auto;
             padding: 2rem;
             border-radius: 8px;
             width: 90%;
-            max-width: 700px;
-            max-height: 90vh;
+            max-width: 1000px;
+            max-height: calc(100vh - 40px);
             overflow-y: auto;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             animation: slideDown 0.3s ease;
@@ -599,7 +600,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <!-- Search Result Modal -->
     <div id="sitInModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="width: 95%; max-width: 1000px;">
             <div class="modal-header">
                 <h2>👤 Student Information</h2>
                 <button type="button" class="close-btn" onclick="closeSitInModal()">&times;</button>
@@ -624,7 +625,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
                 <div>
                     <label class="form-label">Remaining Sessions</label>
-                    <div style="font-size: 0.95rem; color: var(--brand-1); font-weight: 600; font-size: 1.2rem;"
+                    <div style="font-size: 1.5rem; color: #28a745; font-weight: 700;"
                         id="modalRemainingSessions">0</div>
                 </div>
             </div>
@@ -641,9 +642,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <h3 style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-primary); font-weight: 700;">Add
                     New Sit-In</h3>
                 <form method="POST" action="admin-sitin.php"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
                     <div class="form-group">
-                        <label class="form-label">Purpose</label>
+                        <label class="form-label">PURPOSE</label>
                         <select class="form-control" name="purpose" required>
                             <option value="" disabled selected>Select Programming Language</option>
                             <option value="C Programming">C Programming</option>
@@ -657,7 +658,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Lab</label>
+                        <label class="form-label">LAB</label>
                         <select class="form-control" name="lab_room" id="modalLabRoom" required onchange="loadPcGrid(this.value)">
                             <option value="" disabled selected>Select Laboratory</option>
                             <option value="524">524</option>
@@ -670,7 +671,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <input type="hidden" name="pc_number" id="modalPcNumber">
 
-                    <div class="pc-grid-container" id="pcGridContainer" style="display:none;">
+                    <div class="pc-grid-container" id="pcGridContainer" style="display:none; grid-column: 1 / -1;">
                         <div class="pc-grid-header">🖥️ Select a PC</div>
                         <div class="pc-grid-legend">
                             <span><span class="legend-dot available"></span> Available</span>

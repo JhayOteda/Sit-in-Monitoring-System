@@ -1,0 +1,142 @@
+/* Fluid Responsive Adjustments for Sit-in Monitoring System */
+
+/* 1. Fluid Typography & Global Containers */
+html {
+    font-size: 16px;
+}
+@media (max-width: 1200px) {
+    .d-wrap, .page-wrapper, .admin-wrap {
+        width: 98% !important;
+        max-width: 1200px !important;
+        padding: 1rem !important;
+    }
+}
+
+/* 2. Fluid PC Grid - Always responsive regardless of window size */
+.pc-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+/* 3. Table Containers - Always allow horizontal scroll on overflow */
+.d-card-body, .dashboard-card, .table-container, .card-body {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100% !important;
+    border-collapse: collapse;
+}
+
+/* 4. Navigation - Fluid wrap and scroll */
+.d-nav, nav {
+    height: auto !important;
+    min-height: 48px;
+    padding: 0.5rem 1rem !important;
+    flex-wrap: wrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.d-nav-links, .nav-links {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+    padding: 5px 0 !important;
+    max-width: 100%;
+}
+
+.d-nav-links li, .nav-links li {
+    flex-shrink: 0 !important;
+}
+
+/* 5. Breakpoints for Stacking Elements */
+
+/* Tablet & Smaller Laptops */
+@media (max-width: 992px) {
+    .student-info-grid, .info-row, .form-row, .announcements-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 1.5rem !important;
+    }
+    
+    .student-profile-wide {
+        gap: 1.5rem !important;
+    }
+}
+
+/* Mobile Phones (Large) */
+@media (max-width: 768px) {
+    .student-info-grid, .info-row, .form-row, .announcements-grid, .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .student-profile-wide {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    .modal-content {
+        width: 95% !important;
+        margin: 20px auto !important;
+        max-height: calc(100vh - 40px) !important;
+    }
+    
+    .login-card, .register-card {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 1.5rem !important;
+    }
+    
+    .register-body {
+        flex-direction: column !important;
+    }
+    
+    .register-illustration {
+        display: none !important;
+    }
+
+    /* Fix dropdowns on mobile */
+    .d-dd-menu, .dropdown-menu {
+        min-width: 260px !important;
+        left: auto !important;
+        right: 0 !important;
+        position: absolute !important;
+    }
+}
+
+/* Mobile Phones (Small) */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+    
+    .d-nav-brand, .nav-brand {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem !important;
+    }
+    
+    .d-nav-links, .nav-links {
+        width: 100%;
+        justify-content: center;
+        gap: 0.2rem !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .btn, button {
+        padding: 0.5rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+/* Ensure images don't overflow */
+img {
+    max-width: 100%;
+    height: auto;
+}

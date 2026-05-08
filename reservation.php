@@ -575,6 +575,7 @@ try {
         }
     </style>
     <link rel="stylesheet" href="assets/dark-mode.css">
+    <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
 </head>
 

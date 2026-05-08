@@ -152,6 +152,7 @@ unset($student); // Important: unset the reference to prevent issues
     <title>CCS | Admin - Students</title>
     </style>
     <link rel="stylesheet" href="assets/dark-mode.css">
+    <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
