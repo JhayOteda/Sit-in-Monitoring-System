@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
         $new_status = ($action === "approve") ? "Approved" : "Rejected";
         try {
             // Get reservation details for creating sit-in log
-            $get_res = $pdo->prepare("SELECT user_id, purpose, lab_room FROM reservations WHERE id = ?");
+            $get_res = $pdo->prepare("SELECT user_id, purpose, lab_room, pc_number FROM reservations WHERE id = ?");
             $get_res->execute([$reservation_id]);
             $reservation = $get_res->fetch(PDO::FETCH_ASSOC);
 
@@ -27,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
                 $user_id = $reservation['user_id'];
                 $purpose = $reservation['purpose'];
                 $lab_room = $reservation['lab_room'];
+                $pc_number = $reservation['pc_number'] ?? null;
 
                 try {
                     // Check if student already has active sit-in
@@ -37,9 +38,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
                         // User already has an active sit-in session
                         $error_msg = "Cannot approve this reservation. This student already has an active sit-in session. The admin must end the current session first.";
                     } else {
+                        // Check if PC is still available
+                        if ($pc_number) {
+                            $pc_check = $pdo->prepare("SELECT id FROM sit_in_logs WHERE lab_room = ? AND pc_number = ? AND time_out IS NULL");
+                            $pc_check->execute([$lab_room, $pc_number]);
+                            if ($pc_check->rowCount() > 0) {
+                                $error_msg = "Cannot approve. PC #$pc_number in Lab $lab_room is already occupied.";
+                                // Skip the rest
+                                goto skip_approve;
+                            }
+                        }
                         // Create new sit-in entry
-                        $sitin_stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
-                        $sitin_stmt->execute([$user_id, $purpose, $lab_room]);
+                        $sitin_stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, pc_number, created_at) VALUES (?, ?, ?, ?, NOW())");
+                        $sitin_stmt->execute([$user_id, $purpose, $lab_room, $pc_number]);
 
                         // Decrement remaining_sessions
                         $decrement_stmt = $pdo->prepare("UPDATE users SET remaining_sessions = remaining_sessions - 1 WHERE id = ? AND remaining_sessions > 0");
@@ -53,6 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && isset($_
                 } catch (Exception $e) {
                     $error_msg = "Error creating sit-in session: " . $e->getMessage();
                 }
+                skip_approve:
             } else if ($action === "reject") {
                 // Update reservation status for rejection
                 $stmt = $pdo->prepare("UPDATE reservations SET status = ? WHERE id = ?");
@@ -336,6 +348,7 @@ try {
                                 <th>Time</th>
                                 <th>Purpose</th>
                                 <th>Lab Room</th>
+                                <th>PC #</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -350,6 +363,7 @@ try {
                                     <td><?= htmlspecialchars($r["time_in"]) ?></td>
                                     <td><?= htmlspecialchars($r["purpose"]) ?></td>
                                     <td><?= htmlspecialchars($r["lab_room"] ?? "N/A") ?></td>
+                                    <td><?= $r["pc_number"] ? 'PC ' . htmlspecialchars($r["pc_number"]) : 'N/A' ?></td>
                                     <td><span
                                             class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span>
                                     </td>

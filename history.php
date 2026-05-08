@@ -293,7 +293,7 @@ try {
 
         .d-wrap {
             padding: 1.2rem 1.5rem;
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
@@ -338,6 +338,7 @@ try {
             padding: 0.55rem 0.9rem;
             border-bottom: 1px solid var(--border-soft);
             color: var(--text-primary);
+            white-space: nowrap;
         }
 
         table tr:hover td {
@@ -653,6 +654,8 @@ try {
                                 <th>Time Out</th>
                                 <th>Duration</th>
                                 <th>Purpose</th>
+                                <th>Lab Room</th>
+                                <th>PC #</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -678,6 +681,8 @@ try {
                                         ?>
                                     </td>
                                     <td><?= htmlspecialchars($log["purpose"] ?? "—") ?></td>
+                                    <td><?= htmlspecialchars($log["lab_room"] ?? "—") ?></td>
+                                    <td><?= $log["pc_number"] ? 'PC ' . htmlspecialchars($log["pc_number"]) : '—' ?></td>
                                     <td><span
                                             class="badge badge-<?= strtolower($log['status'] ?? 'completed') ?>"><?= htmlspecialchars($log["status"] ?? "Completed") ?></span>
                                     </td>

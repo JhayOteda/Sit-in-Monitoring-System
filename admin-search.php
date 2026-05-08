@@ -447,6 +447,111 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         .btn-close:hover {
             background: #556063;
         }
+
+        /* PC Grid Styles */
+        .pc-grid-container {
+            margin-top: 1rem;
+            grid-column: 1 / -1;
+        }
+        .pc-grid-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .pc-grid-legend {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .pc-grid-legend span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        .legend-dot.available { background: #28a745; }
+        .legend-dot.occupied { background: #dc3545; }
+        .legend-dot.selected { background: #007bff; }
+        .pc-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 6px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        .pc-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            position: relative;
+            min-height: 38px;
+        }
+        .pc-cell.available {
+            background: #e6f4ea;
+            color: #155724;
+            border-color: #b7dfbe;
+        }
+        .pc-cell.available:hover {
+            background: #c3e6cb;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        .pc-cell.occupied {
+            background: #fde8e8;
+            color: #a01a1a;
+            border-color: #f5b7b7;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .pc-cell.selected {
+            background: #cce5ff;
+            color: #004085;
+            border-color: #007bff;
+            box-shadow: 0 2px 10px rgba(0, 123, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        .pc-cell .pc-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 400;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .pc-cell.occupied:hover .pc-tooltip {
+            display: block;
+        }
+        .pc-grid-status {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .pc-grid-status strong {
+            color: var(--brand-1);
+        }
     </style>
 </head>
 
@@ -553,7 +658,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <div class="form-group">
                         <label class="form-label">Lab</label>
-                        <select class="form-control" name="lab_room" required>
+                        <select class="form-control" name="lab_room" id="modalLabRoom" required onchange="loadPcGrid(this.value)">
                             <option value="" disabled selected>Select Laboratory</option>
                             <option value="524">524</option>
                             <option value="544">544</option>
@@ -561,6 +666,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <option value="530">530</option>
                             <option value="528">528</option>
                         </select>
+                    </div>
+
+                    <input type="hidden" name="pc_number" id="modalPcNumber">
+
+                    <div class="pc-grid-container" id="pcGridContainer" style="display:none;">
+                        <div class="pc-grid-header">🖥️ Select a PC</div>
+                        <div class="pc-grid-legend">
+                            <span><span class="legend-dot available"></span> Available</span>
+                            <span><span class="legend-dot occupied"></span> Occupied</span>
+                            <span><span class="legend-dot selected"></span> Selected</span>
+                        </div>
+                        <div class="pc-grid" id="pcGrid"></div>
+                        <div class="pc-grid-status" id="pcGridStatus"></div>
                     </div>
 
                     <input type="hidden" name="user_id" id="modalUserId">
@@ -626,6 +744,62 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (event.target == modal) {
                 modal.style.display = 'none';
             }
+        }
+
+        function loadPcGrid(labRoom) {
+            const container = document.getElementById('pcGridContainer');
+            const grid = document.getElementById('pcGrid');
+            const status = document.getElementById('pcGridStatus');
+            const pcInput = document.getElementById('modalPcNumber');
+
+            if (!labRoom) {
+                container.style.display = 'none';
+                return;
+            }
+
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:1rem; color: var(--text-muted);">Loading PCs...</div>';
+            container.style.display = 'block';
+            pcInput.value = '';
+
+            fetch('get_available_pcs.php?lab_room=' + encodeURIComponent(labRoom))
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#a01a1a;">Error loading PCs</div>';
+                        return;
+                    }
+                    grid.innerHTML = '';
+                    let availCount = 0;
+                    for (let i = 1; i <= data.total_pcs; i++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'pc-cell';
+                        cell.textContent = i;
+                        if (data.occupied[i]) {
+                            cell.classList.add('occupied');
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'pc-tooltip';
+                            tooltip.textContent = data.occupied[i];
+                            cell.appendChild(tooltip);
+                        } else {
+                            cell.classList.add('available');
+                            availCount++;
+                            cell.addEventListener('click', function() {
+                                document.querySelectorAll('.pc-cell.selected').forEach(c => {
+                                    if (c.dataset.wasAvailable) c.className = 'pc-cell available';
+                                });
+                                this.classList.remove('available');
+                                this.classList.add('selected');
+                                this.dataset.wasAvailable = '1';
+                                pcInput.value = i;
+                            });
+                        }
+                        grid.appendChild(cell);
+                    }
+                    status.innerHTML = '<strong>' + availCount + '</strong> of ' + data.total_pcs + ' PCs available';
+                })
+                .catch(err => {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#a01a1a;">Error loading PCs</div>';
+                });
         }
     </script>
 

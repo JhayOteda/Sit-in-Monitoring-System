@@ -39,6 +39,7 @@ try {
             sl.user_id,
             sl.purpose,
             sl.lab_room,
+            sl.pc_number,
             sl.created_at,
             sl.time_out,
             u.id_number,
@@ -344,6 +345,7 @@ try {
                                 <th>Student Name</th>
                                 <th>Purpose</th>
                                 <th>Lab Room</th>
+                                <th>PC #</th>
                                 <th>Check-In Time</th>
                                 <th>Check-Out Time</th>
                                 <th>Duration</th>
@@ -359,6 +361,7 @@ try {
                                     </td>
                                     <td><?= htmlspecialchars($record['purpose']) ?></td>
                                     <td><?= htmlspecialchars($record['lab_room']) ?></td>
+                                    <td><?= $record['pc_number'] ? 'PC ' . htmlspecialchars($record['pc_number']) : '—' ?></td>
                                     <td><?= date('M d, Y H:i', strtotime($record['created_at'])) ?></td>
                                     <td>
                                         <?php
@@ -424,7 +427,7 @@ try {
                     if (!document.querySelector('.no-records-message')) {
                         const message = document.createElement('tr');
                         message.className = 'no-records-message';
-                        message.innerHTML = '<td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No records found matching your search.</td>';
+                        message.innerHTML = '<td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">No records found matching your search.</td>';
                         recordsTable.appendChild(message);
                     }
                 } else {

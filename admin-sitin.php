@@ -14,9 +14,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["user_id"]) && isset($
     $user_id = intval($_POST["user_id"] ?? 0);
     $purpose = trim($_POST["purpose"] ?? "");
     $lab_room = trim($_POST["lab_room"] ?? "");
+    $pc_number = intval($_POST["pc_number"] ?? 0);
 
-    if ($user_id <= 0 || empty($purpose) || empty($lab_room)) {
-        $error_message = "✗ Invalid data provided.";
+    if ($user_id <= 0 || empty($purpose) || empty($lab_room) || $pc_number <= 0) {
+        $error_message = "✗ Invalid data provided. Please select a lab room and PC.";
     } else {
         // Check if student already has an active sit-in
         try {
@@ -26,9 +27,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["user_id"]) && isset($
             if ($check_stmt->rowCount() > 0) {
                 $error_message = "✗ This student already has an active sit-in session. Please end the current session first.";
             } else {
+                // Check if PC is already occupied
+                $pc_check = $pdo->prepare("SELECT id FROM sit_in_logs WHERE lab_room = ? AND pc_number = ? AND time_out IS NULL");
+                $pc_check->execute([$lab_room, $pc_number]);
+                if ($pc_check->rowCount() > 0) {
+                    $error_message = "✗ PC #$pc_number in Lab $lab_room is already occupied. Please select another PC.";
+                } else {
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, created_at) VALUES (?, ?, ?, NOW())");
-                    $stmt->execute([$user_id, $purpose, $lab_room]);
+                    $stmt = $pdo->prepare("INSERT INTO sit_in_logs (user_id, purpose, lab_room, pc_number, created_at) VALUES (?, ?, ?, ?, NOW())");
+                    $stmt->execute([$user_id, $purpose, $lab_room, $pc_number]);
 
                     // Decrement remaining_sessions
                     $decrement_stmt = $pdo->prepare("UPDATE users SET remaining_sessions = remaining_sessions - 1 WHERE id = ? AND remaining_sessions > 0");
@@ -37,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["user_id"]) && isset($
                     $success_message = "✓ Sit-In session created successfully!";
                 } catch (Exception $e) {
                     $error_message = "✗ Error creating sit-in: " . $e->getMessage();
+                }
                 }
             }
         } catch (Exception $e) {
@@ -75,6 +83,7 @@ try {
             sl.user_id,
             sl.purpose,
             sl.lab_room,
+            sl.pc_number,
             sl.created_at,
             u.id_number,
             u.first_name,
@@ -307,6 +316,7 @@ try {
                                 <th>Student Name</th>
                                 <th>Purpose</th>
                                 <th>Lab Room</th>
+                                <th>PC #</th>
                                 <th>Check-In Time</th>
                                 <th>Duration</th>
                                 <th>Action</th>
@@ -320,6 +330,7 @@ try {
                                     </td>
                                     <td><?= htmlspecialchars($sitin['purpose']) ?></td>
                                     <td><?= htmlspecialchars($sitin['lab_room']) ?></td>
+                                    <td><?= $sitin['pc_number'] ? 'PC ' . htmlspecialchars($sitin['pc_number']) : '—' ?></td>
                                     <td><?= date('M d, Y H:i', strtotime($sitin['created_at'])) ?></td>
                                     <td>
                                         <?php
