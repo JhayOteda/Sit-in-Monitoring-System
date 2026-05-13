@@ -274,8 +274,9 @@ html.dark-mode .form-control:focus {
     box-shadow: 0 0 0 3px rgba(63, 163, 112, 0.12) !important;
 }
 
-html.dark-mode .form-label {
-    color: #8b9299 !important;
+html.dark-mode .form-label,
+html.dark-mode .stat-label {
+    color: #ffffff !important;
 }
 
 /* Cards and alerts dark mode */

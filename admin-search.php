@@ -569,6 +569,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
             <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>

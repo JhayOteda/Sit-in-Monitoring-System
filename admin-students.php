@@ -154,6 +154,7 @@ unset($student); // Important: unset the reference to prevent issues
     <link rel="stylesheet" href="assets/dark-mode.css">
     <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -579,6 +580,7 @@ unset($student); // Important: unset the reference to prevent issues
             <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
             <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -637,9 +639,10 @@ unset($student); // Important: unset the reference to prevent issues
                                         <div class="action-buttons">
                                             <button class="btn btn-edit"
                                                 onclick="openEditModal(<?= $student['id'] ?>, '<?= htmlspecialchars($student['first_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['last_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES) ?>', '<?= htmlspecialchars($student['email'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course_level'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['address'] ?? '', ENT_QUOTES) ?>')">Edit</button>
-                                            <a href="admin-students.php?action=delete&id=<?= $student['id'] ?>"
-                                                class="btn btn-delete"
-                                                onclick="return confirm('Are you sure you want to delete this student?')">Delete</a>
+                                            <form class="delete-record-form" method="POST" style="display: inline;">
+                                                <input type="hidden" name="delete_student_id" value="<?= $student['id'] ?>">
+                                                <button type="button" class="btn btn-delete" onclick="confirmDeleteStudent(this.form)">Delete</button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -830,6 +833,24 @@ unset($student); // Important: unset the reference to prevent issues
             if (event.target == addModal) {
                 addModal.style.display = 'none';
             }
+        };
+
+        function confirmDeleteStudent(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                background: document.documentElement.classList.contains('dark-mode') ? '#1f2f27' : '#fff',
+                color: document.documentElement.classList.contains('dark-mode') ? '#fff' : '#1f2f27'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'admin-students.php?action=delete&id=' + id;
+                }
+            });
         }
     </script>
 

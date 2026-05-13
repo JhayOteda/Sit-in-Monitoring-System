@@ -449,8 +449,22 @@ try {
 
         .d-wrap {
             padding: 1.2rem 1.5rem;
-            max-width: 900px;
+            max-width: 1300px;
             margin: 0 auto;
+        }
+
+        .r-grid {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 2rem;
+            align-items: start;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 992px) {
+            .r-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .d-card {
@@ -835,7 +849,7 @@ try {
                     </div>
                     <div class="ef-group">
                         <label class="ef-label">Lab Room</label>
-                        <select class="ef-control" name="lab_room" id="resLabRoom" required onchange="loadPcGrid(this.value)">
+                        <select class="ef-control" name="lab_room" id="resLabRoom" required onchange="handleLabChange(this.value)">
                             <option value="" disabled selected>Select Laboratory</option>
                             <option value="524">524</option>
                             <option value="544">544</option>
@@ -843,6 +857,14 @@ try {
                             <option value="530">530</option>
                             <option value="528">528</option>
                         </select>
+                    </div>
+
+                    <!-- Software Availability Display -->
+                    <div id="softwareDisplay" style="display: none; margin-bottom: 1.2rem; background: var(--input-bg); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--brand-1);">
+                        <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.5px;">Installed Software</div>
+                        <div id="softwareList" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                            <!-- Software tags will appear here -->
+                        </div>
                     </div>
                     <div class="ef-group">
                         <label class="ef-label">PC Number</label>
@@ -856,7 +878,7 @@ try {
             </div>
         </div>
         <?php if (!empty($reservations)): ?>
-            <div class="d-card" style="margin-top: 1.5rem;">
+            <div class="d-card">
                 <div class="d-card-head">My Reservations</div>
                 <div class="d-card-body">
                     <table>
@@ -996,6 +1018,42 @@ try {
                     }
                 })
                 .catch(error => console.error('Error:', error));
+        }
+
+        function handleLabChange(labRoom) {
+            loadPcGrid(labRoom);
+            loadSoftwareList(labRoom);
+        }
+
+        function loadSoftwareList(labRoom) {
+            const display = document.getElementById('softwareDisplay');
+            const list = document.getElementById('softwareList');
+            
+            if (!labRoom) {
+                display.style.display = 'none';
+                return;
+            }
+
+            fetch('get_lab_software.php?lab_room=' + labRoom)
+                .then(response => response.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(sw => {
+                            const tag = document.createElement('span');
+                            tag.style.cssText = 'background: rgba(47, 122, 89, 0.1); color: var(--brand-1); padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(47, 122, 89, 0.2);';
+                            tag.textContent = sw.name + (sw.version ? ' (' + sw.version + ')' : '');
+                            list.appendChild(tag);
+                        });
+                        display.style.display = 'block';
+                    } else {
+                        list.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted);">No software data available for this lab.</span>';
+                        display.style.display = 'block';
+                    }
+                })
+                .catch(() => {
+                    display.style.display = 'none';
+                });
         }
 
         function loadPcGrid(labRoom) {

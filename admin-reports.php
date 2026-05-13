@@ -139,6 +139,7 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
             <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
             <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>

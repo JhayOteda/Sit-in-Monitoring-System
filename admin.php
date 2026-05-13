@@ -81,13 +81,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 // Handle system settings initialization
-try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS system_settings (
-        setting_key VARCHAR(50) PRIMARY KEY,
-        setting_value TEXT
-    )");
-    
-    // Check if reservation setting exists
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS system_settings (
+            setting_key VARCHAR(50) PRIMARY KEY,
+            setting_value TEXT
+        )");
+        
+        // Software availability tables
+        $pdo->exec("CREATE TABLE IF NOT EXISTS software (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL UNIQUE,
+            version VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS lab_software (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lab_room VARCHAR(20) NOT NULL,
+            software_id INT NOT NULL,
+            FOREIGN KEY (software_id) REFERENCES software(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_assignment (lab_room, software_id)
+        )");
+
+        // Check if reservation setting exists
     $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'reservation_enabled'");
     $stmt->execute();
     if (!$stmt->fetch()) {
@@ -136,6 +152,7 @@ try {
     <link rel="stylesheet" href="assets/dark-mode.css">
     <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -453,6 +470,20 @@ try {
             to { top: 20px; opacity: 1; }
         }
 
+        .system-control-box {
+            background: #f8faf9;
+            transition: background 0.3s ease;
+        }
+
+        html.dark-mode .system-control-box {
+            background: #252d33 !important;
+        }
+
+        html.dark-mode .stat-label,
+        html.dark-mode .form-label {
+            color: #ffffff !important;
+        }
+
         table td {
             padding: 0.5rem;
             border-bottom: 1px solid var(--border-soft);
@@ -516,6 +547,7 @@ try {
             <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
             <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -560,7 +592,7 @@ try {
                     </div>
 
                     <!-- System Controls -->
-                    <div style="margin-top: 1.5rem; padding: 1.2rem; background: #f8faf9; border-radius: 8px; border: 1px solid var(--border-soft);">
+                    <div class="system-control-box" style="margin-top: 1.5rem; padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-soft);">
                         <div class="stat-label" style="margin-bottom: 0.8rem;">Reservation System Control</div>
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <span style="font-size: 0.9rem; font-weight: 600; color: <?= $reservation_enabled ? 'var(--brand-1)' : '#dc3545' ?>;">
@@ -668,10 +700,9 @@ try {
                                         </div>
                                         <div class="ann-text"><?= nl2br(htmlspecialchars($ann["content"])) ?></div>
                                     </div>
-                                    <form method="POST" action="admin.php" style="display: inline;"
-                                        onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                    <form method="POST" action="admin.php" style="display: inline;">
                                         <input type="hidden" name="delete_id" value="<?= $ann["id"] ?>">
-                                        <button type="submit" class="btn-delete">Delete</button>
+                                        <button type="button" class="btn-delete" onclick="confirmDeleteAnnouncement(this.form)">Delete</button>
                                     </form>
                                 </div>
                             <?php endforeach; ?>
@@ -883,6 +914,24 @@ try {
                 window.languageChart.update();
             }
         });
+
+        function confirmDeleteAnnouncement(form) {
+            Swal.fire({
+                title: 'Delete Announcement?',
+                text: "This message will be removed for all students.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                background: document.documentElement.classList.contains('dark-mode') ? '#1f2f27' : '#fff',
+                color: document.documentElement.classList.contains('dark-mode') ? '#fff' : '#1f2f27'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
 
         // Real-time refresh - Update charts every 30 seconds (disabled)
         // setInterval(function () {

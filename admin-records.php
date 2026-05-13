@@ -66,6 +66,7 @@ try {
     <link rel="stylesheet" href="assets/dark-mode.css">
     <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -325,6 +326,7 @@ try {
             <li><a href="admin-reports.php">Sit-In Reports</a></li>
             <li><a href="admin-feedback.php">Feedback Reports</a></li>
             <li><a href="admin-reservations.php">Reservation</a></li>
+            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -350,10 +352,9 @@ try {
                     <?php if (!empty($records)): ?>
                         <div style="display: flex; gap: 0.8rem;">
                             <button type="button" class="btn-generate" onclick="generatePDF()">📄 Generate PDF Report</button>
-                            <form method="POST" style="display: inline;"
-                                onsubmit="return confirm('Are you sure you want to delete ALL sit-in records? This cannot be undone.');">
+                            <form id="deleteAllForm" method="POST" style="display: inline;">
                                 <input type="hidden" name="delete_all" value="1">
-                                <button type="submit" class="btn-delete-all">Delete All History</button>
+                                <button type="button" class="btn-delete-all" onclick="confirmDeleteAll()">Delete All History</button>
                             </form>
                         </div>
                     <?php endif; ?>
@@ -409,10 +410,9 @@ try {
                                         ?>
                                     </td>
                                     <td>
-                                        <form method="POST" style="display: inline;"
-                                            onsubmit="return confirm('Delete this record? This action cannot be undone.');">
+                                        <form class="delete-record-form" method="POST" style="display: inline;">
                                             <input type="hidden" name="delete_record_id" value="<?= $record['id'] ?>">
-                                            <button type="submit" class="btn-delete-row">Delete</button>
+                                            <button type="button" class="btn-delete-row" onclick="confirmDeleteRecord(this.form)">Delete</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -515,6 +515,42 @@ try {
                     if (message) {
                         message.remove();
                     }
+                }
+            });
+        }
+
+        function confirmDeleteRecord(form) {
+            Swal.fire({
+                title: 'Delete record?',
+                text: "This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete!',
+                background: document.documentElement.classList.contains('dark-mode') ? '#1f2f27' : '#fff',
+                color: document.documentElement.classList.contains('dark-mode') ? '#fff' : '#1f2f27'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+
+        function confirmDeleteAll() {
+            Swal.fire({
+                title: 'Delete ALL records?',
+                text: "This will wipe the entire sit-in history!",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, clear everything!',
+                background: document.documentElement.classList.contains('dark-mode') ? '#1f2f27' : '#fff',
+                color: document.documentElement.classList.contains('dark-mode') ? '#fff' : '#1f2f27'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteAllForm').submit();
                 }
             });
         }
