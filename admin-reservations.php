@@ -330,7 +330,7 @@ try {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">📅 Reservations</div>
+            <div class="card-head">Reservations</div>
             <div class="card-body">
                 <?php if ($success_msg): ?>
                     <div class="alert alert-success"><?= htmlspecialchars($success_msg) ?></div><?php endif; ?>

@@ -58,6 +58,44 @@ try {
     }
 } catch (Exception $e) {
 }
+
+// Calculate Sit-in Summary Statistics
+$summary_stats = [
+    'total_hours' => 0,
+    'sessions' => 0,
+    'avg_duration' => '0h 0m',
+    'largest_session' => '0h 0m'
+];
+
+try {
+    $stmt = $pdo->prepare("SELECT created_at, time_out FROM sit_in_logs WHERE user_id = ? AND time_out IS NOT NULL");
+    $stmt->execute([$user_id]);
+    $all_logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($all_logs) > 0) {
+        $total_seconds = 0;
+        $max_seconds = 0;
+        foreach ($all_logs as $log) {
+            $start = new DateTime($log['created_at']);
+            $end = new DateTime($log['time_out']);
+            $diff_seconds = $end->getTimestamp() - $start->getTimestamp();
+            $total_seconds += $diff_seconds;
+            if ($diff_seconds > $max_seconds) {
+                $max_seconds = $diff_seconds;
+            }
+        }
+
+        $summary_stats['sessions'] = count($all_logs);
+        $hours = floor($total_seconds / 3600);
+        $mins = floor(($total_seconds % 3600) / 60);
+        $summary_stats['total_hours'] = $hours . "h " . $mins . "m";
+        
+        $avg_seconds = $total_seconds / $summary_stats['sessions'];
+        $summary_stats['avg_duration'] = floor($avg_seconds / 3600) . "h " . str_pad(floor(($avg_seconds % 3600) / 60), 1, "0", STR_PAD_LEFT) . "m";
+        
+        $summary_stats['largest_session'] = floor($max_seconds / 3600) . "h " . str_pad(floor(($max_seconds % 3600) / 60), 1, "0", STR_PAD_LEFT) . "m";
+    }
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -160,7 +198,7 @@ try {
             position: relative;
         }
 
-        .d-dropdown-menu {
+        .d-dd-menu {
             display: none;
             position: absolute;
             top: calc(100% + 6px);
@@ -173,7 +211,7 @@ try {
             z-index: 999;
         }
 
-        .d-dropdown:hover .d-dropdown-menu {
+        .d-dropdown:hover .d-dd-menu {
             display: block;
         }
 
@@ -195,7 +233,7 @@ try {
             box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
         }
 
-        .d-dropdown-menu {
+        .d-dd-menu {
             display: none;
             position: absolute;
             top: calc(100% + 6px);
@@ -210,11 +248,11 @@ try {
             z-index: 999;
         }
 
-        .d-dropdown:hover .d-dropdown-menu {
+        .d-dropdown:hover .d-dd-menu {
             display: block;
         }
 
-        .d-dropdown-menu .d-dd-header {
+        .d-dd-menu .d-dd-header {
             padding: 0.75rem 1rem;
             border-bottom: 1px solid #eee;
             font-weight: 700;
@@ -284,6 +322,104 @@ try {
             text-align: center;
             color: var(--text-muted);
             font-size: 0.8rem;
+        }
+
+        /* Summary Table Styles */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .summary-table td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary-table td:first-child {
+            font-weight: 600;
+            color: var(--text-muted);
+            width: 60%;
+        }
+
+        .summary-table td:last-child {
+            text-align: right;
+            font-weight: 700;
+            color: var(--brand-1);
+        }
+
+        /* Modal Styles for Summary */
+        .s-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .s-modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideDown 0.3s ease;
+        }
+
+        .s-modal-header {
+            background: var(--brand-1);
+            color: #fff;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .s-modal-header h2 {
+            font-size: 1.1rem;
+            margin: 0;
+            font-family: 'Merriweather', serif;
+        }
+
+        .s-close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .s-close-btn:hover {
+            opacity: 1;
+        }
+
+        .s-modal-body {
+            padding: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .d-dropdown-menu p {
@@ -608,7 +744,7 @@ try {
             <li class="d-dropdown">
                 <a href="#">Notification ▾<?php if ($unread_count > 0): ?><span
                             class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
-                <div class="d-dropdown-menu">
+                <div class="d-dd-menu">
                     <?php if (empty($announcements)): ?>
                         <div class="d-dd-empty">No announcements</div>
                     <?php else: ?>
@@ -636,6 +772,7 @@ try {
             <li><a href="dashboard.php?edit=true">Edit Profile</a></li>
             <li><a href="history.php">History</a></li>
             <li><a href="reservation.php">Reservation</a></li>
+            <li><a href="#" onclick="openSummaryModal(); return false;">Sit-in Summary</a></li>
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>
     </nav>
@@ -704,6 +841,36 @@ try {
         </div>
     </div>
 
+    <!-- Sit-in Summary Modal -->
+    <div id="summaryModal" class="s-modal">
+        <div class="s-modal-content">
+            <div class="s-modal-header">
+                <h2>My Sit-in Summary</h2>
+                <button class="s-close-btn" onclick="closeSummaryModal()">&times;</button>
+            </div>
+            <div class="s-modal-body">
+                <table class="summary-table">
+                    <tr>
+                        <td>Total Sit-in Hours</td>
+                        <td><?= $summary_stats['total_hours'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>Number of Sessions</td>
+                        <td><?= $summary_stats['sessions'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>Average Session Duration</td>
+                        <td><?= $summary_stats['avg_duration'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>Largest Session</td>
+                        <td><?= $summary_stats['largest_session'] ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Feedback Modal -->
     <div id="feedbackModal" class="modal">
         <div class="modal-content">
@@ -736,6 +903,26 @@ try {
     </div>
 
     <script>
+        function openSummaryModal() {
+            document.getElementById('summaryModal').style.display = 'block';
+        }
+
+        function closeSummaryModal() {
+            document.getElementById('summaryModal').style.display = 'none';
+        }
+
+        // Close modal if clicking outside of it
+        window.addEventListener('click', function(event) {
+            const summaryModal = document.getElementById('summaryModal');
+            const feedbackModal = document.getElementById('feedbackModal');
+            if (event.target == summaryModal) {
+                summaryModal.style.display = 'none';
+            }
+            if (event.target == feedbackModal) {
+                feedbackModal.classList.remove('show');
+            }
+        });
+
         let currentLogId = null;
         let currentRating = 0;
 

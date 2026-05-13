@@ -365,6 +365,7 @@ unset($student); // Important: unset the reference to prevent issues
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
             animation: fadeIn 0.3s ease;
         }
 
@@ -586,7 +587,7 @@ unset($student); // Important: unset the reference to prevent issues
         <div class="card">
             <div class="card-head">
                 <div class="card-header-wrapper">
-                    <div class="card-header-title">👥 Students</div>
+                    <div class="card-header-title">Students</div>
                     <div class="card-header-buttons">
                         <button class="btn-add" onclick="openAddModal()">+ Add Student</button>
                         <a href="admin-students.php?action=reset_all_sessions" class="btn-reset"

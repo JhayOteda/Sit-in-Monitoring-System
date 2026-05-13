@@ -144,7 +144,7 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">📊 Reports</div>
+            <div class="card-head">Reports</div>
             <div class="card-body">This feature is coming soon...</div>
         </div>
     </div>

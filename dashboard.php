@@ -61,6 +61,44 @@ try {
     $remaining_sessions = $result ? $result['remaining_sessions'] : 30;
 } catch (Exception $e) {
 }
+
+// Calculate Sit-in Summary Statistics
+$summary_stats = [
+    'total_hours' => 0,
+    'sessions' => 0,
+    'avg_duration' => '0h 0m',
+    'largest_session' => '0h 0m'
+];
+
+try {
+    $stmt = $pdo->prepare("SELECT created_at, time_out FROM sit_in_logs WHERE user_id = ? AND time_out IS NOT NULL");
+    $stmt->execute([$user_id]);
+    $all_logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($all_logs) > 0) {
+        $total_seconds = 0;
+        $max_seconds = 0;
+        foreach ($all_logs as $log) {
+            $start = new DateTime($log['created_at']);
+            $end = new DateTime($log['time_out']);
+            $diff_seconds = $end->getTimestamp() - $start->getTimestamp();
+            $total_seconds += $diff_seconds;
+            if ($diff_seconds > $max_seconds) {
+                $max_seconds = $diff_seconds;
+            }
+        }
+
+        $summary_stats['sessions'] = count($all_logs);
+        $hours = floor($total_seconds / 3600);
+        $mins = floor(($total_seconds % 3600) / 60);
+        $summary_stats['total_hours'] = $hours . "h " . $mins . "m";
+        
+        $avg_seconds = $total_seconds / $summary_stats['sessions'];
+        $summary_stats['avg_duration'] = floor($avg_seconds / 3600) . "h " . str_pad(floor(($avg_seconds % 3600) / 60), 1, "0", STR_PAD_LEFT) . "m";
+        
+        $summary_stats['largest_session'] = floor($max_seconds / 3600) . "h " . str_pad(floor(($max_seconds % 3600) / 60), 1, "0", STR_PAD_LEFT) . "m";
+    }
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -278,6 +316,104 @@ try {
             font-size: 0.8rem;
         }
 
+        /* Summary Table Styles */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .summary-table td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary-table td:first-child {
+            font-weight: 600;
+            color: var(--text-muted);
+            width: 60%;
+        }
+
+        .summary-table td:last-child {
+            text-align: right;
+            font-weight: 700;
+            color: var(--brand-1);
+        }
+
+        /* Modal Styles for Summary */
+        .s-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .s-modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: slideDown 0.3s ease;
+        }
+
+        .s-modal-header {
+            background: var(--brand-1);
+            color: #fff;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .s-modal-header h2 {
+            font-size: 1.1rem;
+            margin: 0;
+            font-family: 'Merriweather', serif;
+        }
+
+        .s-close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .s-close-btn:hover {
+            opacity: 1;
+        }
+
+        .s-modal-body {
+            padding: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         /* Flash alerts */
         .d-flash {
             padding: 0.7rem 1rem;
@@ -360,23 +496,47 @@ try {
         }
 
         .d-info-list {
-            list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 0.6rem;
+            gap: 1.1rem;
+            padding-top: 0.5rem;
         }
 
-        .d-info-list li {
+        .d-info-item {
             display: flex;
-            align-items: flex-start;
-            gap: 0.5rem;
-            font-size: 0.87rem;
-            color: var(--text-primary);
-            line-height: 1.4;
+            flex-direction: column;
+            gap: 0.25rem;
         }
 
-        .d-info-list li b {
+        .d-info-item label {
+            font-size: 0.72rem;
             font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .d-info-item span {
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .d-info-highlight {
+            background: #f0f7f4;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--brand-1);
+        }
+
+        .d-info-highlight label {
+            color: var(--brand-1);
+        }
+
+        .d-info-highlight span {
+            color: var(--brand-1);
+            font-size: 1.1rem;
+            font-weight: 800;
         }
 
         /* ── CENTER: Announcements ── */
@@ -585,17 +745,17 @@ try {
 
         .ef-file-label {
             display: inline-block;
-            padding: 10px;
+            padding: 0.6rem 1.2rem;
             background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
             color: #fff;
             border: none;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
             font-family: inherit;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(47, 122, 89, 0.25);
+            box-shadow: 0 4px 12px rgba(47, 122, 89, 0.2);
             white-space: nowrap;
         }
 
@@ -638,6 +798,7 @@ try {
             <li><a href="dashboard.php?edit=true">Edit Profile</a></li>
             <li><a href="history.php">History</a></li>
             <li><a href="reservation.php">Reservation</a></li>
+            <li><a href="#" onclick="openSummaryModal(); return false;">Sit-in Summary</a></li>
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>
     </nav>
@@ -659,7 +820,7 @@ try {
                 <div class="ef-body">
                     <form method="POST" action="update_profile.php" enctype="multipart/form-data">
                         <div class="ef-grid">
-                            <div class="ef-group ef-full" style="text-align: center; padding: 1.5rem 1rem;">
+                            <div class="ef-group ef-full" style="text-align: center; padding: 1.5rem 1rem; align-items: center;">
                                 <div class="ef-avatar-preview" style="width: 140px; height: 140px; background: #f5FAF7; border: 2px solid var(--border-soft); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0 auto 1rem; box-shadow: 0 8px 25px rgba(47, 122, 89, 0.15);">
                                     <?php if (!empty($user["profile_picture"]) && file_exists("uploads/" . $user["profile_picture"])): ?>
                                         <img src="uploads/<?= htmlspecialchars($user["profile_picture"]) ?>" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover;">
@@ -768,15 +929,32 @@ try {
                         </div>
                     </div>
                     <div class="d-divider"></div>
-                    <ul class="d-info-list">
-                        <li>👤 <span><b>Name:</b>
-                                <?= htmlspecialchars($user["first_name"] . ($user["middle_name"] ? " " . $user["middle_name"] : "") . " " . $user["last_name"]) ?></span></li>
-                        <li>🎓 <span><b>Course:</b> <?= htmlspecialchars($user["course"]) ?></span></li>
-                        <li>↕️ <span><b>Year:</b> <?= htmlspecialchars($user["course_level"]) ?></span></li>
-                        <li>✉️ <span><b>Email:</b> <?= htmlspecialchars($user["email"]) ?></span></li>
-                        <li>🪪 <span><b>Address:</b> <?= htmlspecialchars($user["address"] ?? "Not provided") ?></span></li>
-                        <li>🖥️ <span><b>Remaining Session:</b> <?= htmlspecialchars($remaining_sessions) ?></span></li>
-                    </ul>
+                    <div class="d-info-list">
+                        <div class="d-info-item">
+                            <label>Name</label>
+                            <span><?= htmlspecialchars($user["first_name"] . ($user["middle_name"] ? " " . $user["middle_name"] : "") . " " . $user["last_name"]) ?></span>
+                        </div>
+                        <div class="d-info-item">
+                            <label>Course</label>
+                            <span><?= htmlspecialchars($user["course"]) ?></span>
+                        </div>
+                        <div class="d-info-item">
+                            <label>Year</label>
+                            <span><?= htmlspecialchars($user["course_level"]) ?></span>
+                        </div>
+                        <div class="d-info-item">
+                            <label>Email</label>
+                            <span style="word-break: break-all;"><?= htmlspecialchars($user["email"]) ?></span>
+                        </div>
+                        <div class="d-info-item">
+                            <label>Address</label>
+                            <span><?= htmlspecialchars($user["address"] ?? "Not provided") ?></span>
+                        </div>
+                        <div class="d-info-item d-info-highlight">
+                            <label>Remaining Sessions</label>
+                            <span><?= htmlspecialchars($remaining_sessions) ?></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -826,7 +1004,53 @@ try {
         </div>
     <?php endif; ?>
 
+    <!-- Sit-in Summary Modal -->
+    <div id="summaryModal" class="s-modal">
+        <div class="s-modal-content">
+            <div class="s-modal-header">
+                <h2>My Sit-in Summary</h2>
+                <button class="s-close-btn" onclick="closeSummaryModal()">&times;</button>
+            </div>
+            <div class="s-modal-body">
+                <table class="summary-table">
+                    <tr>
+                        <td>Total Sit-in Hours</td>
+                        <td><?= $summary_stats['total_hours'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>Number of Sessions</td>
+                        <td><?= $summary_stats['sessions'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>Average Session Duration</td>
+                        <td><?= $summary_stats['avg_duration'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>Largest Session</td>
+                        <td><?= $summary_stats['largest_session'] ?></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openSummaryModal() {
+            document.getElementById('summaryModal').style.display = 'block';
+        }
+
+        function closeSummaryModal() {
+            document.getElementById('summaryModal').style.display = 'none';
+        }
+
+        // Close modal if clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('summaryModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
         function markAnnouncementAsRead(announcementId) {
             fetch('mark_announcements_read.php', {
                 method: 'POST',

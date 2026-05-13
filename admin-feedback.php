@@ -281,7 +281,7 @@ try {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">💬 Feedback Reports</div>
+            <div class="card-head">Feedback Reports</div>
             <div class="card-body">
                 <?php if (empty($feedback_list)): ?>
                     <div class="no-data">No feedback submitted yet.</div>

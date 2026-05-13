@@ -297,7 +297,7 @@ try {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">🖥️ Active Sit-In Sessions</div>
+            <div class="card-head">Active Sit-In Sessions</div>
             <div class="card-body">
                 <?php if ($success_message): ?>
                     <div class="alert-success"><?= htmlspecialchars($success_message) ?></div>

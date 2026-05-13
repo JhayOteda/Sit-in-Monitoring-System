@@ -317,6 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
             animation: fadeIn 0.3s ease;
         }
 
@@ -574,7 +575,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">🔍 Student Search</div>
+            <div class="card-head">Student Search</div>
             <div class="card-body">
                 <!-- Search Form -->
                 <form method="POST" class="search-form">
@@ -602,7 +603,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div id="sitInModal" class="modal">
         <div class="modal-content" style="width: 95%; max-width: 1000px;">
             <div class="modal-header">
-                <h2>👤 Student Information</h2>
+                <h2>Student Information</h2>
                 <button type="button" class="close-btn" onclick="closeSitInModal()">&times;</button>
             </div>
 
@@ -632,8 +633,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <!-- Sit-In History Section -->
             <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-primary); font-weight: 700;">📍
-                    Sit-In History</h3>
+                <h3 style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-primary); font-weight: 700;">
+                Sit-In History</h3>
                 <div id="sitInHistoryContainer"></div>
             </div>
 
@@ -672,7 +673,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <input type="hidden" name="pc_number" id="modalPcNumber">
 
                     <div class="pc-grid-container" id="pcGridContainer" style="display:none; grid-column: 1 / -1;">
-                        <div class="pc-grid-header">🖥️ Select a PC</div>
+                        <div class="pc-grid-header">Select a PC</div>
                         <div class="pc-grid-legend">
                             <span><span class="legend-dot available"></span> Available</span>
                             <span><span class="legend-dot occupied"></span> Occupied</span>

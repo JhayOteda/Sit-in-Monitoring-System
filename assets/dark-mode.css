@@ -92,13 +92,14 @@ html.dark-mode .d-ann-meta {
     color: #8b9299 !important;
 }
 
-/* Notification dropdown dark mode */
-html.dark-mode .d-dd-menu {
+html.dark-mode .d-dd-menu,
+html.dark-mode .d-dropdown-menu {
     background: #1e2328 !important;
     border-color: #30363b !important;
 }
 
-html.dark-mode .d-dd-menu .d-dd-header {
+html.dark-mode .d-dd-menu .d-dd-header,
+html.dark-mode .d-dropdown-menu .d-dd-header {
     background: #252d33 !important;
     color: #ffffff !important;
     border-bottom-color: #30363b !important;
@@ -139,6 +140,35 @@ html.dark-mode .d-dd-item.is-read .d-dd-item-title {
 
 html.dark-mode .d-dd-item.is-read .d-dd-item-content {
     color: #8b9299 !important;
+}
+
+html.dark-mode .d-dd-empty {
+    color: #8b9299 !important;
+    background: #1e2328 !important;
+}
+
+/* Sit-in Summary Modal dark mode */
+html.dark-mode .s-modal-content {
+    background: #1e2328 !important;
+    color: #e6efe7 !important;
+}
+
+html.dark-mode .s-modal-header {
+    background: var(--brand-1) !important;
+    color: #fff !important;
+}
+
+html.dark-mode .summary-table td {
+    border-bottom-color: #30363b !important;
+    color: #e6efe7 !important;
+}
+
+html.dark-mode .summary-table td:first-child {
+    color: #8b9299 !important;
+}
+
+html.dark-mode .summary-table td:last-child {
+    color: var(--brand-1) !important;
 }
 
 /* Edit Profile page dark mode */

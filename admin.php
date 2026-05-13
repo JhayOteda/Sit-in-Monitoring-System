@@ -5,6 +5,19 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["role"] !== "admin") {
     exit;
 }
 require 'db.php';
+$user_id = $_SESSION["user_id"];
+$success = $error = "";
+
+// Check if reservation is enabled
+$reservation_enabled = true;
+try {
+    $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'reservation_enabled'");
+    $stmt->execute();
+    $res_setting = $stmt->fetchColumn();
+    if ($res_setting === '0') {
+        $reservation_enabled = false;
+    }
+} catch (Exception $e) {}
 
 // Get statistics
 $total_students = 0;
@@ -48,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } catch (Exception $e) {
             $ann_error = "Could not delete announcement.";
         }
-    } else {
+    } elseif (isset($_POST["post_announcement"])) {
         // Handle announcement submission
         $title = trim($_POST["title"] ?? "");
         $content = trim($_POST["content"] ?? "");
@@ -67,6 +80,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
+// Handle system settings initialization
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS system_settings (
+        setting_key VARCHAR(50) PRIMARY KEY,
+        setting_value TEXT
+    )");
+    
+    // Check if reservation setting exists
+    $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'reservation_enabled'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("INSERT INTO system_settings (setting_key, setting_value) VALUES ('reservation_enabled', '1')");
+    }
+} catch (Exception $e) {}
+
+// Handle Reservation Toggle
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['toggle_reservation'])) {
+    $current_val = $_POST['current_reservation_status'];
+    $new_status = ($current_val === '1') ? '0' : '1';
+    try {
+        $stmt = $pdo->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = 'reservation_enabled'");
+        $stmt->execute([$new_status]);
+        $_SESSION['sys_success'] = "Reservation system " . ($new_status === '1' ? 'enabled' : 'disabled') . " successfully!";
+        header("Location: admin.php");
+        exit;
+    } catch (Exception $e) {
+        $ann_error = "Could not update reservation status.";
+    }
+}
+
+// Fetch reservation status
+$reservation_enabled = true;
+try {
+    $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'reservation_enabled'");
+    $stmt->execute();
+    $reservation_enabled = ($stmt->fetchColumn() === '1');
+} catch (Exception $e) {}
+
 $announcements = [];
 try {
     $ann = $pdo->query("SELECT * FROM announcements ORDER BY created_at DESC LIMIT 5");
@@ -82,7 +133,6 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCS | Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    </style>
     <link rel="stylesheet" href="assets/dark-mode.css">
     <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
@@ -378,6 +428,31 @@ try {
             color: var(--text-primary);
         }
 
+        /* Floating Alert */
+        .sys-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--brand-1);
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 2000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: alertSlideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes alertSlideDown {
+            from { top: -100px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+
         table td {
             padding: 0.5rem;
             border-bottom: 1px solid var(--border-soft);
@@ -445,12 +520,31 @@ try {
         </ul>
     </nav>
 
+    <?php if (isset($_SESSION['sys_success'])): ?>
+        <div class="sys-alert" id="sysAlert">
+            <span>✅</span>
+            <?= htmlspecialchars($_SESSION['sys_success']) ?>
+            <?php unset($_SESSION['sys_success']); ?>
+        </div>
+        <script>
+            setTimeout(() => {
+                const alert = document.getElementById('sysAlert');
+                if (alert) {
+                    alert.style.transition = 'all 0.5s ease';
+                    alert.style.top = '-100px';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }
+            }, 3000);
+        </script>
+    <?php endif; ?>
+
     <div class="admin-wrap">
         <div class="admin-grid">
 
             <!-- LEFT: Statistics -->
             <div class="card">
-                <div class="card-head">📊 Statistics</div>
+                <div class="card-head">Statistics</div>
                 <div class="card-body">
                     <div class="stat-box">
                         <div class="stat-label">Students Registered</div>
@@ -465,6 +559,34 @@ try {
                         <div class="stat-value"><?= $total_sitin ?></div>
                     </div>
 
+                    <!-- System Controls -->
+                    <div style="margin-top: 1.5rem; padding: 1.2rem; background: #f8faf9; border-radius: 8px; border: 1px solid var(--border-soft);">
+                        <div class="stat-label" style="margin-bottom: 0.8rem;">Reservation System Control</div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="font-size: 0.9rem; font-weight: 600; color: <?= $reservation_enabled ? 'var(--brand-1)' : '#dc3545' ?>;">
+                                Status: <?= $reservation_enabled ? 'Active (Enabled)' : 'Inactive (Disabled)' ?>
+                            </span>
+                            <form method="POST" style="margin: 0;">
+                                <input type="hidden" name="toggle_reservation" value="1">
+                                <input type="hidden" name="current_reservation_status" value="<?= $reservation_enabled ? '1' : '0' ?>">
+                                <button type="submit" style="
+                                    padding: 0.5rem 1rem; 
+                                    background: <?= $reservation_enabled ? '#dc3545' : 'var(--brand-1)' ?>; 
+                                    color: #fff; 
+                                    border: none; 
+                                    border-radius: 5px; 
+                                    font-size: 0.75rem; 
+                                    font-weight: 700; 
+                                    cursor: pointer; 
+                                    transition: all 0.3s ease;
+                                    box-shadow: 0 2px 8px <?= $reservation_enabled ? 'rgba(220, 53, 69, 0.25)' : 'rgba(47, 122, 89, 0.25)' ?>;
+                                ">
+                                    <?= $reservation_enabled ? 'Disable Reservation' : 'Enable Reservation' ?>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                     <!-- Analytics Charts -->
                     <div style="border-top: 1px solid var(--border-soft); padding-top: 1.5rem; margin-top: 1.5rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
@@ -472,7 +594,7 @@ try {
                             <div>
                                 <h3
                                     style="font-size: 0.85rem; margin-bottom: 0.8rem; font-family: 'Merriweather', serif; font-weight: 600; color: var(--text-primary);">
-                                    📍 Lab Room</h3>
+                                    Lab Room</h3>
                                 <?php if (empty($lab_room_data)): ?>
                                     <div
                                         style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">
@@ -491,7 +613,7 @@ try {
                             <div>
                                 <h3
                                     style="font-size: 0.85rem; margin-bottom: 0.8rem; font-family: 'Merriweather', serif; font-weight: 600; color: var(--text-primary);">
-                                    💻 Programming Languages</h3>
+                                    Programming Languages</h3>
                                 <?php if (empty($programming_language_data)): ?>
                                     <div
                                         style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">
@@ -512,7 +634,7 @@ try {
 
             <!-- RIGHT: Announcements -->
             <div class="card">
-                <div class="card-head">📢 Announcement</div>
+                <div class="card-head">Announcement</div>
                 <div class="card-body">
                     <?php if ($ann_error): ?>
                         <div class="alert alert-error"><?= htmlspecialchars($ann_error) ?></div><?php endif; ?>
@@ -528,7 +650,7 @@ try {
                             <label class="form-label">Message</label>
                             <textarea class="form-control" name="content" required></textarea>
                         </div>
-                        <button type="submit" class="btn-submit">Submit</button>
+                        <button type="submit" name="post_announcement" class="btn-submit">Submit</button>
                     </form>
 
                     <div style="margin-top: 1.5rem;">

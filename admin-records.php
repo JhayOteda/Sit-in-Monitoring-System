@@ -268,6 +268,26 @@ try {
             transform: translateY(-1px);
         }
 
+        .btn-generate {
+            padding: 0.6rem 1.2rem;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-generate:hover {
+            background: #0069d9;
+            transform: translateY(-1px);
+        }
+
         .btn-delete-row {
             padding: 0.35rem 0.7rem;
             background: #dc3545;
@@ -310,7 +330,7 @@ try {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">📋 Sit-In Records</div>
+            <div class="card-head">Sit-In Records</div>
             <div class="card-body">
                 <?php if ($success_message): ?>
                     <div class="alert-success"><?= htmlspecialchars($success_message) ?></div>
@@ -328,11 +348,14 @@ try {
                         <input type="text" id="searchInput" placeholder="Enter ID number or student name...">
                     </div>
                     <?php if (!empty($records)): ?>
-                        <form method="POST" style="display: inline;"
-                            onsubmit="return confirm('Are you sure you want to delete ALL sit-in records? This cannot be undone.');">
-                            <input type="hidden" name="delete_all" value="1">
-                            <button type="submit" class="btn-delete-all">Delete All History</button>
-                        </form>
+                        <div style="display: flex; gap: 0.8rem;">
+                            <button type="button" class="btn-generate" onclick="generatePDF()">📄 Generate PDF Report</button>
+                            <form method="POST" style="display: inline;"
+                                onsubmit="return confirm('Are you sure you want to delete ALL sit-in records? This cannot be undone.');">
+                                <input type="hidden" name="delete_all" value="1">
+                                <button type="submit" class="btn-delete-all">Delete All History</button>
+                            </form>
+                        </div>
                     <?php endif; ?>
                 </div>
 
@@ -401,7 +424,63 @@ try {
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <script>
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+            
+            // Add Logo or Title
+            doc.setFontSize(18);
+            doc.setTextColor(31, 79, 60); // Brand color
+            doc.text("College of Computer Studies", 14, 15);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(100);
+            doc.text("Sit-In Monitoring System - Laboratory Records", 14, 22);
+            
+            const date = new Date().toLocaleString();
+            doc.setFontSize(10);
+            doc.text("Generated on: " + date, 14, 28);
+
+            // Get table data
+            const table = document.getElementById("recordsTable");
+            const rows = table.querySelectorAll("tr");
+            const data = [];
+            
+            rows.forEach(row => {
+                if (row.style.display !== 'none' && !row.classList.contains('no-records-message')) {
+                    const cells = row.querySelectorAll("td");
+                    const rowData = [];
+                    // Extract data from columns 0 to 7 (excluding the Action column)
+                    for (let i = 0; i <= 7; i++) {
+                        rowData.push(cells[i].innerText.trim());
+                    }
+                    data.push(rowData);
+                }
+            });
+
+            // Define columns
+            const columns = ["ID Number", "Student Name", "Purpose", "Lab", "PC #", "Check-In", "Check-Out", "Duration"];
+
+            // Generate Table
+            doc.autoTable({
+                head: [columns],
+                body: data,
+                startY: 35,
+                theme: 'striped',
+                headStyles: { fillColor: [47, 122, 89], textColor: [255, 255, 255] },
+                alternateRowStyles: { fillColor: [240, 247, 244] },
+                margin: { top: 35 },
+                styles: { fontSize: 9 }
+            });
+
+            // Save PDF
+            doc.save("CCS_SitIn_Report_" + new Date().getTime() + ".pdf");
+        }
+
         // Search functionality
         const searchInput = document.getElementById('searchInput');
         const recordsTable = document.getElementById('recordsTable');
