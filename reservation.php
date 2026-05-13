@@ -772,7 +772,7 @@ try {
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>
     </nav>
-    <div class="r-wrap">
+    <div class="d-wrap">
         <?php if (!$reservation_enabled): ?>
             <!-- Disabled Overlay/Message -->
             <div style="max-width: 600px; margin: 4rem auto; text-align: center; background: #fff; padding: 3rem 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
@@ -914,7 +914,7 @@ try {
         <?php endif; ?>
             </div> <!-- /r-grid -->
         <?php endif; ?>
-    </div> <!-- /r-wrap -->
+    </div> <!-- /d-wrap -->
 
     <!-- Sit-in Summary Modal -->
     <div id="summaryModal" class="s-modal">
