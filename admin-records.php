@@ -318,15 +318,15 @@ try {
     <nav>
         <span class="nav-brand">College of Computer Studies Admin</span>
         <ul class="nav-links">
-            <li><a href="admin.php">Home</a></li>
-            <li><a href="admin-search.php">Search</a></li>
-            <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Active Sit-In</a></li>
-            <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
-            <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
-            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
+            <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
+            <li><a href="admin-students.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-students.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Students</a></li>
+            <li><a href="admin-sitin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-sitin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Active Sit-In</a></li>
+            <li><a href="admin-records.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-records.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>View Sit-In Records</a></li>
+            <li><a href="admin-feedback.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-feedback.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Feedback Reports</a></li>
+            <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -345,9 +345,15 @@ try {
 
                 <!-- Search and Delete All Section -->
                 <div class="search-delete-container">
-                    <div class="search-field">
-                        <label for="searchInput">Search ID Number or Name</label>
-                        <input type="text" id="searchInput" placeholder="Enter ID number or student name...">
+                    <div style="display: flex; gap: 1rem; flex: 1;">
+                        <div class="search-field" style="margin-bottom: 0;">
+                            <label for="searchInput">Search ID Number or Name</label>
+                            <input type="text" id="searchInput" placeholder="Enter ID number or student name...">
+                        </div>
+                        <div class="search-field" style="margin-bottom: 0;">
+                            <label for="dateFilter">Filter by Date</label>
+                            <input type="date" id="dateFilter" style="padding: 0.6rem; border: 1px solid var(--border-soft); border-radius: 6px; outline: none; font-size: 0.9rem; color: var(--text-primary);">
+                        </div>
                     </div>
                     <?php if (!empty($records)): ?>
                         <div style="display: flex; gap: 0.8rem;">
@@ -380,7 +386,8 @@ try {
                         <tbody id="recordsTable">
                             <?php foreach ($records as $record): ?>
                                 <tr class="record-row" data-id-number="<?= htmlspecialchars($record['id_number']) ?>"
-                                    data-student-name="<?= htmlspecialchars($record['first_name'] . ($record['middle_name'] ? ' ' . $record['middle_name'] : '') . ' ' . $record['last_name']) ?>">
+                                    data-student-name="<?= htmlspecialchars($record['first_name'] . ($record['middle_name'] ? ' ' . $record['middle_name'] : '') . ' ' . $record['last_name']) ?>"
+                                    data-date="<?= date('Y-m-d', strtotime($record['created_at'])) ?>">
                                     <td><?= htmlspecialchars($record['id_number']) ?></td>
                                     <td><?= htmlspecialchars($record['first_name'] . ($record['middle_name'] ? ' ' . $record['middle_name'] : '') . ' ' . $record['last_name']) ?>
                                     </td>
@@ -483,41 +490,48 @@ try {
 
         // Search functionality
         const searchInput = document.getElementById('searchInput');
+        const dateFilter = document.getElementById('dateFilter');
         const recordsTable = document.getElementById('recordsTable');
         const recordRows = recordsTable ? recordsTable.querySelectorAll('.record-row') : [];
 
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function () {
-                const searchTerm = this.value.toLowerCase().trim();
+        function applyFilters() {
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const dateTerm = dateFilter ? dateFilter.value : '';
 
-                recordRows.forEach(row => {
-                    const idNumber = row.getAttribute('data-id-number').toLowerCase();
-                    const studentName = row.getAttribute('data-student-name').toLowerCase();
+            recordRows.forEach(row => {
+                const idNumber = row.getAttribute('data-id-number').toLowerCase();
+                const studentName = row.getAttribute('data-student-name').toLowerCase();
+                const rowDate = row.getAttribute('data-date');
 
-                    if (idNumber.includes(searchTerm) || studentName.includes(searchTerm) || searchTerm === '') {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+                const matchesSearch = idNumber.includes(searchTerm) || studentName.includes(searchTerm) || searchTerm === '';
+                const matchesDate = dateTerm === '' || rowDate === dateTerm;
 
-                // Check if any rows are visible
-                const visibleRows = Array.from(recordRows).some(row => row.style.display !== 'none');
-                if (!visibleRows && searchTerm !== '') {
-                    if (!document.querySelector('.no-records-message')) {
-                        const message = document.createElement('tr');
-                        message.className = 'no-records-message';
-                        message.innerHTML = '<td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">No records found matching your search.</td>';
-                        recordsTable.appendChild(message);
-                    }
+                if (matchesSearch && matchesDate) {
+                    row.style.display = '';
                 } else {
-                    const message = document.querySelector('.no-records-message');
-                    if (message) {
-                        message.remove();
-                    }
+                    row.style.display = 'none';
                 }
             });
+
+            // Check if any rows are visible
+            const visibleRows = Array.from(recordRows).some(row => row.style.display !== 'none');
+            if (!visibleRows && (searchTerm !== '' || dateTerm !== '')) {
+                if (!document.querySelector('.no-records-message')) {
+                    const message = document.createElement('tr');
+                    message.className = 'no-records-message';
+                    message.innerHTML = '<td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">No records found matching your filters.</td>';
+                    recordsTable.appendChild(message);
+                }
+            } else {
+                const message = document.querySelector('.no-records-message');
+                if (message) {
+                    message.remove();
+                }
+            }
         }
+
+        if (searchInput) searchInput.addEventListener('keyup', applyFilters);
+        if (dateFilter) dateFilter.addEventListener('change', applyFilters);
 
         function confirmDeleteRecord(form) {
             Swal.fire({

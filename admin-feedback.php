@@ -268,15 +268,15 @@ try {
     <nav>
         <span class="nav-brand">College of Computer Studies Admin</span>
         <ul class="nav-links">
-            <li><a href="admin.php">Home</a></li>
-            <li><a href="admin-search.php">Search</a></li>
-            <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Active Sit-In</a></li>
-            <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
-            <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
-            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
+            <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
+            <li><a href="admin-students.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-students.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Students</a></li>
+            <li><a href="admin-sitin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-sitin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Active Sit-In</a></li>
+            <li><a href="admin-records.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-records.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>View Sit-In Records</a></li>
+            <li><a href="admin-feedback.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-feedback.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Feedback Reports</a></li>
+            <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>

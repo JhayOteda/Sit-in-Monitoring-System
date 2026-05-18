@@ -59,14 +59,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["action"]) && $_POST["
 
     if ($log_id > 0) {
         try {
-            $stmt = $pdo->prepare("UPDATE sit_in_logs SET time_out = NOW() WHERE id = ? AND time_out IS NULL");
-            $stmt->execute([$log_id]);
-            $affected = $stmt->rowCount();
-            if ($affected > 0) {
-                $success_message = "✓ Sit-In session ended successfully!";
-                header("Refresh: 2; url=admin-records.php");
+            // Find student user_id associated with this log entry
+            $find_user = $pdo->prepare("SELECT user_id FROM sit_in_logs WHERE id = ?");
+            $find_user->execute([$log_id]);
+            $log_entry = $find_user->fetch(PDO::FETCH_ASSOC);
+
+            if ($log_entry) {
+                $student_id = $log_entry['user_id'];
+
+                // Calculate duration in seconds using TIMESTAMPDIFF
+                $dur_stmt = $pdo->prepare("SELECT TIMESTAMPDIFF(SECOND, created_at, NOW()) as seconds FROM sit_in_logs WHERE id = ?");
+                $dur_stmt->execute([$log_id]);
+                $duration = $dur_stmt->fetch(PDO::FETCH_ASSOC);
+                $seconds = $duration ? intval($duration['seconds']) : 0;
+
+                $stmt = $pdo->prepare("UPDATE sit_in_logs SET time_out = NOW() WHERE id = ? AND time_out IS NULL");
+                $stmt->execute([$log_id]);
+                $affected = $stmt->rowCount();
+
+                if ($affected > 0) {
+                    // Convert to hours and award points (10 points per hour, minimum 1 point)
+                    $hours = $seconds / 3600.0;
+                    $earned_points = max(1, round($hours * 10));
+
+                    // Award calculated points to student
+                    $points_stmt = $pdo->prepare("UPDATE users SET points = points + ? WHERE id = ?");
+                    $points_stmt->execute([$earned_points, $student_id]);
+
+                    $success_message = "✓ Sit-In session ended successfully! Student earned +" . $earned_points . " points. 🏆";
+                    header("Refresh: 2; url=admin-records.php");
+                } else {
+                    $error_message = "⚠ Session already ended or not found.";
+                }
             } else {
-                $error_message = "⚠ Session already ended or not found.";
+                $error_message = "⚠ Sit-in log entry not found.";
             }
         } catch (Exception $e) {
             $error_message = "✗ Error ending session: " . $e->getMessage();
@@ -109,6 +135,7 @@ try {
     <link rel="stylesheet" href="assets/dark-mode.css">
     <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -284,15 +311,15 @@ try {
     <nav>
         <span class="nav-brand">College of Computer Studies Admin</span>
         <ul class="nav-links">
-            <li><a href="admin.php">Home</a></li>
-            <li><a href="admin-search.php">Search</a></li>
-            <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Active Sit-In</a></li>
-            <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
-            <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
-            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
+            <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
+            <li><a href="admin-students.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-students.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Students</a></li>
+            <li><a href="admin-sitin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-sitin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Active Sit-In</a></li>
+            <li><a href="admin-records.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-records.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>View Sit-In Records</a></li>
+            <li><a href="admin-feedback.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-feedback.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Feedback Reports</a></li>
+            <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -320,7 +347,6 @@ try {
                                 <th>Lab Room</th>
                                 <th>PC #</th>
                                 <th>Check-In Time</th>
-                                <th>Duration</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -335,19 +361,10 @@ try {
                                     <td><?= $sitin['pc_number'] ? 'PC ' . htmlspecialchars($sitin['pc_number']) : '—' ?></td>
                                     <td><?= date('M d, Y H:i', strtotime($sitin['created_at'])) ?></td>
                                     <td>
-                                        <?php
-                                        $start = new DateTime($sitin['created_at']);
-                                        $now = new DateTime();
-                                        $diff = $start->diff($now);
-                                        echo $diff->format('%hh %im');
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <form method="POST" action="admin-sitin.php" style="display: inline;">
+                                        <form method="POST" action="admin-sitin.php" onsubmit="confirmEndSitin(event, this)" style="display: inline;">
                                             <input type="hidden" name="action" value="end_sitin">
                                             <input type="hidden" name="log_id" value="<?= $sitin['id'] ?>">
-                                            <button type="submit" class="btn-end"
-                                                onclick="return confirm('End sit-in for this student?')">End</button>
+                                            <button type="submit" class="btn-end">End</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -357,7 +374,28 @@ try {
                 <?php endif; ?>
             </div>
         </div>
-    </div>
+    </div>    <script>
+        function confirmEndSitin(event, form) {
+            event.preventDefault(); // Prevent default immediate submit
+            
+            Swal.fire({
+                title: 'End Sit-In Session?',
+                text: "Are you sure you want to end this student's sit-in session? Points will be dynamically calculated based on duration.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2f7a59',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, end session!',
+                cancelButtonText: 'Cancel',
+                background: document.documentElement.classList.contains('dark-mode') ? '#1f2f27' : '#fff',
+                color: document.documentElement.classList.contains('dark-mode') ? '#fff' : '#1f2f27'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit(); // Submit the form
+                }
+            });
+        }
+    </script>
 
 </body>
 

@@ -9,6 +9,29 @@ require 'db.php';
 $success = $error = "";
 $labs = ['524', '526', '528', '530', '542', '544'];
 
+// Handle Export to CSV
+if (isset($_GET['export_lab'])) {
+    $lab_room = $_GET['export_lab'];
+    
+    if (in_array($lab_room, $labs)) {
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=Lab_' . $lab_room . '_Software_Inventory.csv');
+        $output = fopen('php://output', 'w');
+        fputcsv($output, ['Software Name', 'Version', 'Assigned To']);
+        
+        try {
+            $stmt = $pdo->prepare("SELECT s.name, s.version FROM software s JOIN lab_software ls ON s.id = ls.software_id WHERE ls.lab_room = ? ORDER BY s.name ASC");
+            $stmt->execute([$lab_room]);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                fputcsv($output, [$row['name'], $row['version'] ? $row['version'] : 'N/A', 'Lab Room ' . $lab_room]);
+            }
+        } catch (Exception $e) {}
+        
+        fclose($output);
+        exit;
+    }
+}
+
 // Handle Software Addition with Lab Assignments
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_software'])) {
     $name = trim($_POST['software_name']);
@@ -181,15 +204,15 @@ try {
     <nav>
         <span class="nav-brand">CCS Admin | Lab Assets</span>
         <ul class="nav-links">
-            <li><a href="admin.php">Home</a></li>
-            <li><a href="admin-search.php">Search</a></li>
-            <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Active Sit-In</a></li>
-            <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
-            <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
-            <li><a href="admin-lab-assets.php" style="background: rgba(255,255,255,0.15)">Lab Assets</a></li>
+            <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
+            <li><a href="admin-students.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-students.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Students</a></li>
+            <li><a href="admin-sitin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-sitin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Active Sit-In</a></li>
+            <li><a href="admin-records.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-records.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>View Sit-In Records</a></li>
+            <li><a href="admin-feedback.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-feedback.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Feedback Reports</a></li>
+            <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -258,7 +281,10 @@ try {
                         <div class="lab-grid">
                             <?php foreach ($labs as $lab): ?>
                                 <div class="lab-card">
-                                    <div class="lab-title">Lab Room <?= $lab ?></div>
+                                    <div class="lab-title">
+                                        <span>Lab Room <?= $lab ?></span>
+                                        <a href="admin-lab-assets.php?export_lab=<?= $lab ?>" style="font-size: 0.7rem; font-family: 'Nunito Sans', sans-serif; background: #1f543d; color: #fff; padding: 0.25rem 0.6rem; border-radius: 4px; text-decoration: none; transition: 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Export CSV</a>
+                                    </div>
                                     
                                     <div class="assigned-list">
                                         <?php if (!isset($lab_assets[$lab]) || empty($lab_assets[$lab])): ?>

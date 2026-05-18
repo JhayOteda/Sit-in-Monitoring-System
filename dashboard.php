@@ -99,6 +99,7 @@ try {
         $summary_stats['largest_session'] = floor($max_seconds / 3600) . "h " . str_pad(floor(($max_seconds % 3600) / 60), 1, "0", STR_PAD_LEFT) . "m";
     }
 } catch (Exception $e) {}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -111,6 +112,7 @@ try {
     <link rel="stylesheet" href="assets/dark-mode.css">
     <link rel="stylesheet" href="assets/responsive.css">
     <script src="assets/dark-mode.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -344,6 +346,69 @@ try {
             text-align: right;
             font-weight: 700;
             color: var(--brand-1);
+        }
+
+        /* Dashboard Horizontal Summary Table */
+        .dashboard-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+        }
+
+        .dashboard-summary-table th {
+            background: var(--brand-1);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-align: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-summary-table th:last-child {
+            border-right: none;
+        }
+
+        .dashboard-summary-table td {
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            border-right: 1px solid var(--border-soft);
+            background: var(--card-bg);
+        }
+
+        .dashboard-summary-table td:last-child {
+            border-right: none;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-summary-table, .dashboard-summary-table thead, .dashboard-summary-table tbody, .dashboard-summary-table th, .dashboard-summary-table td, .dashboard-summary-table tr {
+                display: block;
+                width: 100%;
+            }
+            .dashboard-summary-table thead {
+                display: none;
+            }
+            .dashboard-summary-table td {
+                text-align: left;
+                padding: 0.75rem 1rem;
+                border-right: none;
+                border-bottom: 1px solid var(--border-soft);
+                font-size: 0.95rem;
+            }
+            .dashboard-summary-table td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--text-muted);
+                display: block;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                margin-bottom: 0.25rem;
+            }
         }
 
         /* Modal Styles for Summary */
@@ -774,7 +839,7 @@ try {
         <span class="d-nav-brand"><?= $edit_mode ? "Edit Profile" : "Dashboard" ?></span>
         <ul class="d-nav-links">
             <li class="d-dropdown">
-                <a href="#">Notification ▾<?php if ($unread_count > 0): ?><span class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
+                <a href="#" style="position: relative; padding: 0.35rem 0.5rem; display: flex; align-items: center;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><?php if ($unread_count > 0): ?><span class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
                 <div class="d-dd-menu">
                     <?php if (empty($announcements)): ?>
                         <div class="d-dd-empty">No announcements</div>
@@ -794,11 +859,11 @@ try {
                     <?php endif; ?>
                 </div>
             </li>
-            <li><a href="dashboard.php">Home</a></li>
-            <li><a href="dashboard.php?edit=true">Edit Profile</a></li>
-            <li><a href="history.php">History</a></li>
-            <li><a href="reservation.php">Reservation</a></li>
-            <li><a href="#" onclick="openSummaryModal(); return false;">Sit-in Summary</a></li>
+            <li><a href="dashboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && !(isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
+            <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
+            <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>
     </nav>
@@ -910,7 +975,35 @@ try {
 
     <?php else: ?>
         <!-- ── HOME MODE: 3-column grid ── -->
-        <div class="d-grid">
+        <div style="padding: 12px 12px 0 12px; width: 100%;">
+            <div class="d-card" style="box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1); border-radius: 6px; overflow: hidden;">
+                <div class="d-card-head" style="background: var(--brand-1); color: #fff; font-size: 0.9rem; font-weight: 700; padding: 0.6rem 1rem; letter-spacing: 0.02em;">My Sit-in Summary</div>
+                <div class="d-card-body" style="padding: 0; overflow-x: auto;">
+                    <table class="dashboard-summary-table">
+                        <thead>
+                            <tr>
+                                <th>Total Earned Points</th>
+                                <th>Total Sit-in Hours</th>
+                                <th>Number of Sessions</th>
+                                <th>Average Session Duration</th>
+                                <th>Largest Session</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-label="Total Earned Points" style="font-weight: 700; color: var(--brand-1);">🏆 <?= htmlspecialchars($user['points'] ?? 0) ?> pts</td>
+                                <td data-label="Total Sit-in Hours"><?= htmlspecialchars($summary_stats['total_hours']) ?></td>
+                                <td data-label="Number of Sessions"><?= htmlspecialchars($summary_stats['sessions']) ?></td>
+                                <td data-label="Average Session Duration"><?= htmlspecialchars($summary_stats['avg_duration']) ?></td>
+                                <td data-label="Largest Session"><?= htmlspecialchars($summary_stats['largest_session']) ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid" style="min-height: auto; padding-top: 12px;">
 
             <!-- LEFT: Student Info -->
             <div class="d-card">
@@ -978,25 +1071,30 @@ try {
                 <?php endif; ?>
             </div>
 
-            <!-- RIGHT: Rules & Regulations -->
-            <div class="d-card">
-                <div class="d-card-head">Rules and Regulation</div>
-                <div class="d-card-body">
-                    <div class="d-rules-body">
-                        <p class="d-rules-uni">University of Cebu</p>
-                        <p class="d-rules-col">COLLEGE OF INFORMATION &amp; COMPUTER STUDIES</p>
-                        <p class="d-rules-title">LABORATORY RULES AND REGULATIONS</p>
-                        <p class="d-rules-intro">To avoid embarrassment and maintain camaraderie with your friends and
-                            superiors at our laboratories, please observe the following:</p>
-                        <p>1. Maintain silence, proper decorum, and discipline inside the laboratory. Mobile phones,
-                            walkmans and other personal pieces of equipment must be switched off.</p>
-                        <p>2. Games are not allowed inside the lab. This includes computer-related games, card games and
-                            other games that may disturb the operation of the lab.</p>
-                        <p>3. Surfing the Internet is allowed only with the permission of the instructor. Downloading and
-                            installing of software are strictly prohibited.</p>
-                        <p>4. Food and drinks are strictly prohibited inside the lab.</p>
-                        <p>5. Students are not allowed to change the settings of the computer without permission.</p>
-                        <p>6. Students are responsible for the proper care of the equipment assigned to them.</p>
+            <!-- RIGHT: Task Tracker & Rules & Regulations -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+
+
+                <!-- Rules & Regulations Card -->
+                <div class="d-card" style="height: auto;">
+                    <div class="d-card-head">Rules and Regulation</div>
+                    <div class="d-card-body">
+                        <div class="d-rules-body">
+                            <p class="d-rules-uni">University of Cebu</p>
+                            <p class="d-rules-col">COLLEGE OF INFORMATION &amp; COMPUTER STUDIES</p>
+                            <p class="d-rules-title">LABORATORY RULES AND REGULATIONS</p>
+                            <p class="d-rules-intro">To avoid embarrassment and maintain camaraderie with your friends and
+                                superiors at our laboratories, please observe the following:</p>
+                            <p>1. Maintain silence, proper decorum, and discipline inside the laboratory. Mobile phones,
+                                walkmans and other personal pieces of equipment must be switched off.</p>
+                            <p>2. Games are not allowed inside the lab. This includes computer-related games, card games and
+                                other games that may disturb the operation of the lab.</p>
+                            <p>3. Surfing the Internet is allowed only with the permission of the instructor. Downloading and
+                                installing of software are strictly prohibited.</p>
+                            <p>4. Food and drinks are strictly prohibited inside the lab.</p>
+                            <p>5. Students are not allowed to change the settings of the computer without permission.</p>
+                            <p>6. Students are responsible for the proper care of the equipment assigned to them.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1013,6 +1111,10 @@ try {
             </div>
             <div class="s-modal-body">
                 <table class="summary-table">
+                    <tr>
+                        <td>Total Earned Points</td>
+                        <td style="font-weight: 700; color: var(--brand-1);"><?= intval($user['points'] ?? 0) ?> pts</td>
+                    </tr>
                     <tr>
                         <td>Total Sit-in Hours</td>
                         <td><?= $summary_stats['total_hours'] ?></td>
@@ -1109,6 +1211,8 @@ try {
             })
             .catch(error => console.error('Error updating badge:', error));
         }
+
+
     </script>
 
 </body>

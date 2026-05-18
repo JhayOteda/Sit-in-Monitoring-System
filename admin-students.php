@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_student'])) {
         } else {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
             try {
-                $stmt = $pdo->prepare("INSERT INTO users (id_number, last_name, first_name, middle_name, course_level, password, email, course, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO users (id_number, last_name, first_name, middle_name, course_level, password, email, course, address, points) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)");
                 $stmt->execute([$id_number, $last_name, $first_name, $middle_name, $course_level, $hashed, $email, $course, $address]);
                 $_SESSION['success'] = "Student added successfully!";
                 header("Location: admin-students.php");
@@ -121,11 +121,46 @@ if (isset($_GET['action']) && $_GET['action'] === 'reset_all_sessions') {
     exit;
 }
 
+// Handle award points submission
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['award_points_action'])) {
+    $student_id = intval($_POST['student_id'] ?? 0);
+    $points_amount = intval($_POST['points_amount'] ?? 0);
+    $reason = trim($_POST['points_reason'] ?? "");
+    $log_as_task = isset($_POST['log_as_task']) ? 1 : 0;
+
+    if ($student_id > 0 && $points_amount !== 0) {
+        try {
+            $pdo->beginTransaction();
+
+            // Update user points
+            $stmt = $pdo->prepare("UPDATE users SET points = points + ? WHERE id = ?");
+            $stmt->execute([$points_amount, $student_id]);
+
+            // Optionally log as a completed task if reason is provided
+            if ($log_as_task && !empty($reason)) {
+                $task_desc = "Admin Reward: " . $reason . " (" . ($points_amount > 0 ? "+" : "") . $points_amount . " pts)";
+                $stmt_task = $pdo->prepare("INSERT INTO student_tasks (user_id, task_desc) VALUES (?, ?)");
+                $stmt_task->execute([$student_id, $task_desc]);
+            }
+
+            $pdo->commit();
+            $_SESSION['success'] = "Successfully updated student points! " . ($points_amount > 0 ? "+" : "") . $points_amount . " pts rewarded.";
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $_SESSION['error'] = "Error updating points: " . $e->getMessage();
+        }
+    } else {
+        $_SESSION['error'] = "Invalid points amount.";
+    }
+    header("Location: admin-students.php");
+    exit;
+}
+
 $students = [];
 $edit_student = null;
 
 try {
-    $stmt = $pdo->query("SELECT id, id_number, first_name, last_name, middle_name, course, course_level, email, address FROM users ORDER BY last_name ASC");
+    $stmt = $pdo->query("SELECT id, id_number, first_name, last_name, middle_name, course, course_level, email, address, points FROM users ORDER BY last_name ASC");
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
 }
@@ -572,15 +607,15 @@ unset($student); // Important: unset the reference to prevent issues
     <nav>
         <span class="nav-brand">College of Computer Studies Admin</span>
         <ul class="nav-links">
-            <li><a href="admin.php">Home</a></li>
-            <li><a href="admin-search.php">Search</a></li>
-            <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Active Sit-In</a></li>
-            <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
-            <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
-            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
+            <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
+            <li><a href="admin-students.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-students.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Students</a></li>
+            <li><a href="admin-sitin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-sitin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Active Sit-In</a></li>
+            <li><a href="admin-records.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-records.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>View Sit-In Records</a></li>
+            <li><a href="admin-feedback.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-feedback.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Feedback Reports</a></li>
+            <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -619,6 +654,7 @@ unset($student); // Important: unset the reference to prevent issues
                                 <th>Course</th>
                                 <th>Level</th>
                                 <th>Email</th>
+
                                 <th>Remaining Session</th>
                                 <th>Actions</th>
                             </tr>
@@ -632,17 +668,16 @@ unset($student); // Important: unset the reference to prevent issues
                                     <td><?= htmlspecialchars($student["course"]) ?></td>
                                     <td><?= htmlspecialchars($student["course_level"]) ?></td>
                                     <td><?= htmlspecialchars($student["email"]) ?></td>
+
                                     <td style="text-align: center; font-weight: 700; color: var(--brand-1);">
                                         <?= ($student["remaining_sessions"] ?? 30) ?>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
+
                                             <button class="btn btn-edit"
                                                 onclick="openEditModal(<?= $student['id'] ?>, '<?= htmlspecialchars($student['first_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['last_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES) ?>', '<?= htmlspecialchars($student['email'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['course_level'], ENT_QUOTES) ?>', '<?= htmlspecialchars($student['address'] ?? '', ENT_QUOTES) ?>')">Edit</button>
-                                            <form class="delete-record-form" method="POST" style="display: inline;">
-                                                <input type="hidden" name="delete_student_id" value="<?= $student['id'] ?>">
-                                                <button type="button" class="btn btn-delete" onclick="confirmDeleteStudent(this.form)">Delete</button>
-                                            </form>
+                                            <button type="button" class="btn btn-delete" onclick="confirmDeleteStudent(<?= $student['id'] ?>)">Delete</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -714,6 +749,56 @@ unset($student); // Important: unset the reference to prevent issues
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
                     <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Award/Manage Points Modal -->
+    <div id="pointsModal" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header" style="border-bottom-color: #e6b800;">
+                <h2>🏆 Award Points to Student</h2>
+                <button class="close-btn" onclick="closePointsModal()">&times;</button>
+            </div>
+            <form method="POST" action="admin-students.php">
+                <input type="hidden" name="award_points_action" value="1">
+                <input type="hidden" name="student_id" id="points_student_id">
+
+                <div class="form-group" style="margin-bottom: 1.5rem; text-align: center; background: rgba(230, 184, 0, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(230, 184, 0, 0.15);">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.25rem;">Student Name</div>
+                    <div id="points_student_name" style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">Student Name</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Current Points: <strong id="points_current_val" style="color: #cda215;">0 pts</strong></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="color: #cda215;">Points Amount</label>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 0.5rem;">
+                        <input type="number" class="form-control" id="points_amount" name="points_amount" placeholder="e.g. 50 or -20" required style="font-size: 1.1rem; font-weight: 700; text-align: center;">
+                    </div>
+                    <!-- Quick select buttons -->
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <button type="button" class="btn" style="background: rgba(230, 184, 0, 0.1); color: #cda215; border: 1px solid rgba(230, 184, 0, 0.2); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="setQuickPoints(10)">+10</button>
+                        <button type="button" class="btn" style="background: rgba(230, 184, 0, 0.1); color: #cda215; border: 1px solid rgba(230, 184, 0, 0.2); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="setQuickPoints(20)">+20</button>
+                        <button type="button" class="btn" style="background: rgba(230, 184, 0, 0.1); color: #cda215; border: 1px solid rgba(230, 184, 0, 0.2); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="setQuickPoints(50)">+50</button>
+                        <button type="button" class="btn" style="background: rgba(230, 184, 0, 0.1); color: #cda215; border: 1px solid rgba(230, 184, 0, 0.2); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="setQuickPoints(100)">+100</button>
+                        <button type="button" class="btn" style="background: rgba(220, 53, 69, 0.05); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.15); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="setQuickPoints(-10)">-10</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label">Reason / Remark</label>
+                    <input type="text" class="form-control" id="points_reason" name="points_reason" placeholder="e.g. Helped clean lab room, Java project assistance" required>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 1rem;">
+                    <input type="checkbox" id="log_as_task" name="log_as_task" value="1" checked style="width: 16px; height: 16px; cursor: pointer;">
+                    <label for="log_as_task" style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); cursor: pointer;">Log reason as a completed task for student score (20% weight)</label>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 1.5rem;">
+                    <button type="button" class="btn-cancel" onclick="closePointsModal()">Cancel</button>
+                    <button type="submit" class="btn-save" style="background: #e6b800; box-shadow: 0 2px 8px rgba(230, 184, 0, 0.2);">Confirm Award</button>
                 </div>
             </form>
         </div>
@@ -823,15 +908,36 @@ unset($student); // Important: unset the reference to prevent issues
             document.getElementById('addModal').style.display = 'none';
         }
 
+        function openPointsModal(id, name, currentPoints) {
+            document.getElementById('points_student_id').value = id;
+            document.getElementById('points_student_name').textContent = name;
+            document.getElementById('points_current_val').textContent = currentPoints + " pts";
+            document.getElementById('points_amount').value = '';
+            document.getElementById('points_reason').value = '';
+            document.getElementById('pointsModal').style.display = 'block';
+        }
+
+        function closePointsModal() {
+            document.getElementById('pointsModal').style.display = 'none';
+        }
+
+        function setQuickPoints(amount) {
+            document.getElementById('points_amount').value = amount;
+        }
+
         // Close modal when clicking outside of it
         window.onclick = function (event) {
             var editModal = document.getElementById('editModal');
             var addModal = document.getElementById('addModal');
+            var pointsModal = document.getElementById('pointsModal');
             if (event.target == editModal) {
                 editModal.style.display = 'none';
             }
             if (event.target == addModal) {
                 addModal.style.display = 'none';
+            }
+            if (event.target == pointsModal) {
+                pointsModal.style.display = 'none';
             }
         };
 

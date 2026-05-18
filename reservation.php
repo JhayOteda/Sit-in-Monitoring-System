@@ -738,8 +738,7 @@ try {
         <span class="d-nav-brand">Reservation</span>
         <ul class="d-nav-links">
             <li class="d-dropdown">
-                <a href="#">Notification ▾<?php if ($unread_count > 0): ?><span
-                            class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
+                <a href="#" style="position: relative; padding: 0.35rem 0.5rem; display: flex; align-items: center;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><?php if ($unread_count > 0): ?><span class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
                 <div class="d-dd-menu">
                     <?php if (empty($announcements)): ?>
                         <div class="d-dd-empty">No announcements</div>
@@ -764,11 +763,11 @@ try {
                     <?php endif; ?>
                 </div>
             </li>
-            <li><a href="dashboard.php">Home</a></li>
-            <li><a href="dashboard.php?edit=true">Edit Profile</a></li>
-            <li><a href="history.php">History</a></li>
-            <li><a href="reservation.php">Reservation</a></li>
-            <li><a href="#" onclick="openSummaryModal(); return false;">Sit-in Summary</a></li>
+            <li><a href="dashboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && !(isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
+            <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
+            <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>
     </nav>

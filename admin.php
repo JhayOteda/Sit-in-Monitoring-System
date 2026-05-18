@@ -111,29 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 } catch (Exception $e) {}
 
-// Handle Reservation Toggle
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['toggle_reservation'])) {
-    $current_val = $_POST['current_reservation_status'];
-    $new_status = ($current_val === '1') ? '0' : '1';
-    try {
-        $stmt = $pdo->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = 'reservation_enabled'");
-        $stmt->execute([$new_status]);
-        $_SESSION['sys_success'] = "Reservation system " . ($new_status === '1' ? 'enabled' : 'disabled') . " successfully!";
-        header("Location: admin.php");
-        exit;
-    } catch (Exception $e) {
-        $ann_error = "Could not update reservation status.";
-    }
-}
-
-// Fetch reservation status
-$reservation_enabled = true;
-try {
-    $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'reservation_enabled'");
-    $stmt->execute();
-    $reservation_enabled = ($stmt->fetchColumn() === '1');
-} catch (Exception $e) {}
-
+// Fetch Announcements
 $announcements = [];
 try {
     $ann = $pdo->query("SELECT * FROM announcements ORDER BY created_at DESC LIMIT 5");
@@ -539,15 +517,15 @@ try {
     <nav>
         <span class="nav-brand">College of Computer Studies Admin</span>
         <ul class="nav-links">
-            <li><a href="admin.php">Home</a></li>
-            <li><a href="admin-search.php">Search</a></li>
-            <li><a href="admin-students.php">Students</a></li>
-            <li><a href="admin-sitin.php">Active Sit-In</a></li>
-            <li><a href="admin-records.php">View Sit-In Records</a></li>
-            <li><a href="admin-reports.php">Sit-In Reports</a></li>
-            <li><a href="admin-feedback.php">Feedback Reports</a></li>
-            <li><a href="admin-reservations.php">Reservation</a></li>
-            <li><a href="admin-lab-assets.php">Lab Assets</a></li>
+            <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
+            <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
+            <li><a href="admin-students.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-students.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Students</a></li>
+            <li><a href="admin-sitin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-sitin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Active Sit-In</a></li>
+            <li><a href="admin-records.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-records.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>View Sit-In Records</a></li>
+            <li><a href="admin-feedback.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-feedback.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Feedback Reports</a></li>
+            <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
+            <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
@@ -591,33 +569,6 @@ try {
                         <div class="stat-value"><?= $total_sitin ?></div>
                     </div>
 
-                    <!-- System Controls -->
-                    <div class="system-control-box" style="margin-top: 1.5rem; padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-soft);">
-                        <div class="stat-label" style="margin-bottom: 0.8rem;">Reservation System Control</div>
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 0.9rem; font-weight: 600; color: <?= $reservation_enabled ? 'var(--brand-1)' : '#dc3545' ?>;">
-                                Status: <?= $reservation_enabled ? 'Active (Enabled)' : 'Inactive (Disabled)' ?>
-                            </span>
-                            <form method="POST" style="margin: 0;">
-                                <input type="hidden" name="toggle_reservation" value="1">
-                                <input type="hidden" name="current_reservation_status" value="<?= $reservation_enabled ? '1' : '0' ?>">
-                                <button type="submit" style="
-                                    padding: 0.5rem 1rem; 
-                                    background: <?= $reservation_enabled ? '#dc3545' : 'var(--brand-1)' ?>; 
-                                    color: #fff; 
-                                    border: none; 
-                                    border-radius: 5px; 
-                                    font-size: 0.75rem; 
-                                    font-weight: 700; 
-                                    cursor: pointer; 
-                                    transition: all 0.3s ease;
-                                    box-shadow: 0 2px 8px <?= $reservation_enabled ? 'rgba(220, 53, 69, 0.25)' : 'rgba(47, 122, 89, 0.25)' ?>;
-                                ">
-                                    <?= $reservation_enabled ? 'Disable Reservation' : 'Enable Reservation' ?>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
 
                     <!-- Analytics Charts -->
                     <div style="border-top: 1px solid var(--border-soft); padding-top: 1.5rem; margin-top: 1.5rem;">
