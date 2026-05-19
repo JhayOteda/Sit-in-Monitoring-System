@@ -124,11 +124,107 @@ try {
             font-size: 0.9rem;
             font-weight: 700;
             padding: 0.6rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-report {
+            background: var(--brand-1);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 0.4rem 0.9rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-report:hover {
+            background: #fff;
+            color: var(--brand-1);
+        }
+
+        .btn-report:hover .btn-report-icon-wrapper {
+            background: var(--brand-1);
+            border-color: var(--brand-1);
+        }
+
+        .btn-report:hover .btn-report-icon {
+            stroke: #fff;
+        }
+
+        .btn-report-icon-wrapper {
+            background: #fff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-soft);
+            transition: all 0.2s ease;
+        }
+
+        .btn-report-icon {
+            stroke: var(--brand-1);
+            transition: stroke 0.2s ease;
+        }
+
+        .icon-wrapper {
+            background: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-soft);
+            margin-right: 0.25rem;
         }
 
         .card-body {
             padding: 1.5rem;
             color: var(--text-muted);
+        }
+
+        @media print {
+            nav, .btn-report {
+                display: none !important;
+            }
+            body {
+                background: #fff !important;
+            }
+            .admin-wrap {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .card-head {
+                background: #1f4f3c !important;
+                color: #fff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .feedback-card {
+                page-break-inside: avoid;
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+            }
+            .feedback-text {
+                border-left: 3px solid #1f4f3c !important;
+                background: #f8faf9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
         .feedback-message {
@@ -282,7 +378,15 @@ try {
     </nav>
     <div class="admin-wrap">
         <div class="card">
-            <div class="card-head">Feedback Reports</div>
+            <div class="card-head">
+                <span>Feedback Reports</span>
+                <button class="btn-report" onclick="window.print()">
+                    <span class="btn-report-icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-report-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </span>
+                    Generate Report
+                </button>
+            </div>
             <div class="card-body">
                 <?php if (empty($feedback_list)): ?>
                     <div class="no-data">No feedback submitted yet.</div>
@@ -315,7 +419,10 @@ try {
 
                                 <div class="feedback-footer">
                                     <div class="feedback-date">
-                                        📅 <?= htmlspecialchars(date("M d, Y", strtotime($fb['created_at']))) ?> at
+                                        <span class="icon-wrapper">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        </span>
+                                        <?= htmlspecialchars(date("M d, Y", strtotime($fb['created_at']))) ?> at
                                         <?= htmlspecialchars(date("h:i A", strtotime($fb['created_at']))) ?>
                                     </div>
                                 </div>

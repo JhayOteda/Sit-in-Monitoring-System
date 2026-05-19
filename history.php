@@ -8,7 +8,7 @@ require 'db.php';
 $user_id = $_SESSION["user_id"];
 $logs = [];
 try {
-    $stmt = $pdo->prepare("SELECT * FROM sit_in_logs WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt = $pdo->prepare("SELECT * FROM sit_in_logs WHERE user_id = ? AND time_out IS NOT NULL ORDER BY created_at DESC");
     $stmt->execute([$user_id]);
     $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {

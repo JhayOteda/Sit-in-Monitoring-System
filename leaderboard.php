@@ -1,18 +1,14 @@
 <?php
 session_start();
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit;
-}
 require 'db.php';
 
-$user_id = $_SESSION["user_id"];
-$role = $_SESSION["role"] ?? "student";
+$user_id = $_SESSION["user_id"] ?? null;
+$role = $_SESSION["role"] ?? "guest";
 
 // Fetch unread notifications for student role
 $announcements = [];
 $unread_count = 0;
-if ($role === "student") {
+if ($role === "student" && $user_id) {
     try {
         $ann_stmt = $pdo->prepare("SELECT a.id, a.title, a.content, a.created_at, 
                                    IF(ar.id IS NOT NULL, 1, 0) as is_read
@@ -31,9 +27,12 @@ if ($role === "student") {
 }
 
 // Fetch logged in user details
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$user_id]);
-$logged_user = $stmt->fetch(PDO::FETCH_ASSOC);
+$logged_user = null;
+if ($user_id) {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $logged_user = $stmt->fetch(PDO::FETCH_ASSOC);
+}
 
 // Fetch leaderboard data
 $leaderboard = [];
@@ -357,7 +356,7 @@ if ($role === 'student') {
 
     <!-- NAVBAR -->
     <nav>
-        <span class="nav-brand"><?= $role === 'admin' ? 'CCS Admin' : 'CCS Student' ?> | Leaderboards</span>
+        <span class="nav-brand"><?= $role === 'admin' ? 'CCS Admin' : ($role === 'student' ? 'CCS Student' : 'CCS') ?> | Leaderboards</span>
         <ul class="nav-links">
             <?php if ($role === 'admin'): ?>
                 <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
@@ -369,7 +368,8 @@ if ($role === 'student') {
                 <li><a href="admin-reservations.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-reservations.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
                 <li><a href="admin-lab-assets.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-lab-assets.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Assets</a></li>
                 <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
-            <?php else: ?>
+                <li><a href="logout.php" class="logout-btn">Log out</a></li>
+            <?php elseif ($role === 'student'): ?>
                 <li class="d-dropdown">
                     <a href="#" style="position: relative; padding: 0.35rem 0.5rem; display: flex; align-items: center;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><?php if ($unread_count > 0): ?><span class="d-notification-badge"><?= $unread_count ?></span><?php endif; ?></a>
                     <div class="d-dd-menu">
@@ -396,8 +396,12 @@ if ($role === 'student') {
                 <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
                 <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
                 <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
+                <li><a href="logout.php" class="logout-btn">Log out</a></li>
+            <?php else: ?>
+                <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
+                <li><a href="login.php">Login</a></li>
+                <li><a href="register.php">Register</a></li>
             <?php endif; ?>
-            <li><a href="logout.php" class="logout-btn">Log out</a></li>
         </ul>
     </nav>
 

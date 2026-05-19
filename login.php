@@ -63,16 +63,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <nav>
         <span class="nav-brand">College of Computer Studies Sit-in Monitoring System</span>
         <ul class="nav-links">
-            <li><a href="#">Home</a></li>
-            <li class="dropdown">
-                <button class="dropdown-toggle">Community</button>
-                <div class="dropdown-menu">
-                    <a href="#">Forums</a>
-                    <a href="#">Members</a>
-                </div>
-            </li>
+            <li><a href="leaderboard.php">Leaderboard</a></li>
             <li><a href="login.php">Login</a></li>
-            <li><a href="Register.php">Register</a></li>
+            <li><a href="register.php">Register</a></li>
             <li>
                 <div class="theme-toggle" id="themeToggle"><span class="theme-toggle-icon moon">🌙</span><span
                         class="theme-toggle-icon sun">☀️</span>
