@@ -764,7 +764,13 @@ $lab_rooms = ['524', '526', '528', '530', '544'];
             <div class="card-body">
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="searchInput" placeholder="Search by Name or ID Number..." style="flex: 1; padding: 0.6rem; border: 1px solid var(--border-soft); border-radius: 5px; outline: none; font-size: 0.9rem; background: var(--input-bg); color: var(--text-primary);">
-                    <input type="date" id="dateFilter" style="padding: 0.6rem; border: 1px solid var(--border-soft); border-radius: 5px; outline: none; font-size: 0.9rem; background: var(--input-bg); color: var(--text-primary);">
+                    <select id="statusFilter" style="padding: 0.6rem; border: 1px solid var(--border-soft); border-radius: 5px; outline: none; font-size: 0.9rem; color: var(--text-primary); background: var(--input-bg); cursor: pointer; min-width: 150px;">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
                     <select id="labFilter" style="padding: 0.6rem; border: 1px solid var(--border-soft); border-radius: 5px; outline: none; font-size: 0.9rem; color: var(--text-primary); background: var(--input-bg); cursor: pointer; min-width: 150px;">
                         <option value="">All Lab Rooms</option>
                         <?php foreach ($lab_rooms as $room): ?>
@@ -837,21 +843,21 @@ $lab_rooms = ['524', '526', '528', '530', '544'];
     <script>
         function filterTable() {
             let searchFilter = document.getElementById('searchInput').value.toLowerCase();
-            let dateFilter = document.getElementById('dateFilter').value;
+            let statusFilter = document.getElementById('statusFilter').value;
             let labFilter = document.getElementById('labFilter').value;
             let rows = document.querySelectorAll('tbody tr.reservation-row');
             
             rows.forEach(row => {
                 let idCol = row.cells[0].textContent.toLowerCase();
                 let nameCol = row.cells[1].textContent.toLowerCase();
-                let dateCol = row.cells[2].getAttribute('data-date');
+                let statusCol = row.cells[7].textContent.trim();
                 let labVal = row.getAttribute('data-lab-room') || '';
                 
                 let matchesSearch = idCol.includes(searchFilter) || nameCol.includes(searchFilter);
-                let matchesDate = dateFilter === '' || dateCol === dateFilter;
+                let matchesStatus = statusFilter === '' || statusCol === statusFilter;
                 let matchesLab = labFilter === '' || labVal === labFilter;
                 
-                if (matchesSearch && matchesDate && matchesLab) {
+                if (matchesSearch && matchesStatus && matchesLab) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -860,7 +866,7 @@ $lab_rooms = ['524', '526', '528', '530', '544'];
         }
 
         document.getElementById('searchInput').addEventListener('keyup', filterTable);
-        document.getElementById('dateFilter').addEventListener('change', filterTable);
+        document.getElementById('statusFilter').addEventListener('change', filterTable);
         document.getElementById('labFilter').addEventListener('change', filterTable);
     </script>
 <script>

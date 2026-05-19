@@ -43,10 +43,23 @@ try {
     // pc_number column might not exist yet
 }
 
+// Get maintenance PCs
+$maintenance = [];
+try {
+    $stmt = $pdo->prepare("SELECT pc_number FROM pc_statuses WHERE lab_room = ? AND status = 'Maintenance'");
+    $stmt->execute([$lab_room]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as $row) {
+        $maintenance[] = (int)$row['pc_number'];
+    }
+} catch (Exception $e) {
+}
+
 echo json_encode([
     'success' => true,
     'lab_room' => $lab_room,
     'total_pcs' => $total_pcs,
-    'occupied' => $occupied
+    'occupied' => $occupied,
+    'maintenance' => $maintenance
 ]);
 ?>

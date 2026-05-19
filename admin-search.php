@@ -625,6 +625,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         .legend-dot.available { background: #28a745; }
         .legend-dot.occupied { background: #dc3545; }
         .legend-dot.selected { background: #007bff; }
+        .legend-dot.maintenance { background: #ffc107; }
         .pc-grid {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
@@ -656,6 +657,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             background: #c3e6cb;
             transform: translateY(-2px);
             box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        .pc-cell.maintenance {
+            background: #fff8e1;
+            color: #bf8a00;
+            border-color: #ffeeba;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        html.dark-mode .pc-cell.maintenance {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.3);
         }
         .pc-cell.occupied {
             background: #fde8e8;
@@ -996,6 +1009,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <span><span class="legend-dot available"></span> Available</span>
                             <span><span class="legend-dot occupied"></span> Occupied</span>
                             <span><span class="legend-dot selected"></span> Selected</span>
+                            <span><span class="legend-dot maintenance"></span> Maintenance</span>
                         </div>
                         <div class="pc-grid" id="pcGrid"></div>
                         <div class="pc-grid-status" id="pcGridStatus"></div>
@@ -1094,7 +1108,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         const cell = document.createElement('div');
                         cell.className = 'pc-cell';
                         cell.textContent = i;
-                        if (data.occupied[i]) {
+                        if (data.maintenance && data.maintenance.includes(i)) {
+                            cell.classList.add('maintenance');
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'pc-tooltip';
+                            tooltip.textContent = 'Maintenance';
+                            cell.appendChild(tooltip);
+                        } else if (data.occupied && data.occupied[i]) {
                             cell.classList.add('occupied');
                             const tooltip = document.createElement('div');
                             tooltip.className = 'pc-tooltip';

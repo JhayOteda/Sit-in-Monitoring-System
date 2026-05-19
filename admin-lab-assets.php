@@ -522,7 +522,7 @@ try {
 </head>
 <body>
     <nav>
-        <span class="nav-brand">CCS Admin | Lab Assets</span>
+        <span class="nav-brand">College of Computer Studies Admin</span>
         <ul class="nav-links">
             <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
             <li><a href="admin-search.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin-search.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Search</a></li>
@@ -569,11 +569,15 @@ try {
     </nav>
 
     <div class="admin-wrap">
-        <div class="admin-header" style="margin-bottom: 2rem;">
+        <div class="admin-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
             <h1 style="font-family: 'Merriweather', serif; font-size: 1.8rem; color: var(--brand-1); display: flex; align-items: center; gap: 0.6rem; margin: 0;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-1);"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>
                 Software & Lab Management
             </h1>
+            <a href="admin-pc-control.php" style="background: var(--brand-1); color: white; padding: 0.6rem 1.2rem; border-radius: 6px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                PC Control Center
+            </a>
         </div>
 
         <?php if ($success): ?><div class="alert alert-success">✅ <?= $success ?></div><?php endif; ?>

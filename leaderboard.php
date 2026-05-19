@@ -522,7 +522,7 @@ if ($role === 'student') {
 
     <!-- NAVBAR -->
     <nav>
-        <span class="nav-brand"><?= $role === 'admin' ? 'CCS Admin' : ($role === 'student' ? 'CCS Student' : 'CCS') ?> | Leaderboards</span>
+        <span class="nav-brand"><?= $role === 'admin' ? 'College of Computer Studies Admin' : 'Leaderboard' ?></span>
         <ul class="nav-links">
             <?php if ($role === 'admin'): ?>
                 <li><a href="admin.php" <?php if (basename($_SERVER['PHP_SELF']) === 'admin.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>

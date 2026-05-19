@@ -693,6 +693,7 @@ try {
         .legend-dot.available { background: #28a745; }
         .legend-dot.occupied { background: #dc3545; }
         .legend-dot.selected { background: #007bff; }
+        .legend-dot.maintenance { background: #ffc107; }
         .pc-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -725,6 +726,25 @@ try {
             transform: translateY(-2px);
             box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
         }
+        .pc-cell.maintenance {
+            background: #fff8e1;
+            color: #bf8a00;
+            border-color: #ffeeba;
+            cursor: not-allowed;
+            opacity: 0.8;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .pc-cell.maintenance svg {
+            width: 14px;
+            height: 14px;
+            color: #ffc107;
+        }
+        html.dark-mode .pc-cell.maintenance {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.3);
+        }
         .pc-cell.occupied {
             background: #fde8e8;
             color: #a01a1a;
@@ -747,7 +767,26 @@ try {
         html.dark-mode .pc-cell.available:hover {
             background: rgba(40, 167, 69, 0.25);
         }
-        html.dark-mode .pc-cell.occupied {
+        html.dark-mode .pc-cell.maintenance {
+            background: #fff8e1;
+            color: #bf8a00;
+            border-color: #ffeeba;
+            cursor: not-allowed;
+            opacity: 0.8;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .pc-cell.maintenance svg {
+            width: 14px;
+            height: 14px;
+            color: #ffc107;
+        }
+        html.dark-mode .pc-cell.maintenance {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+        .pc-cell.occupied {
             background: rgba(220, 53, 69, 0.15);
             color: #ff9a9a;
             border-color: rgba(220, 53, 69, 0.3);
@@ -1331,6 +1370,7 @@ try {
                     html += '<span><span class="legend-dot available"></span> Available</span>';
                     html += '<span><span class="legend-dot occupied"></span> Occupied</span>';
                     html += '<span><span class="legend-dot selected"></span> Selected</span>';
+                    html += '<span><span class="legend-dot maintenance"></span> Maintenance</span>';
                     html += '</div>';
                     html += '<div class="pc-grid" id="pcGridInner"></div>';
                     html += '<div class="pc-grid-status" id="pcGridStatus"></div>';
@@ -1343,7 +1383,14 @@ try {
                         const cell = document.createElement('div');
                         cell.className = 'pc-cell';
                         cell.textContent = i;
-                        if (data.occupied[i]) {
+                        if (data.maintenance && data.maintenance.includes(i)) {
+                            cell.classList.add('maintenance');
+                            cell.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg><span>' + i + '</span>';
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'pc-tooltip';
+                            tooltip.textContent = 'Maintenance';
+                            cell.appendChild(tooltip);
+                        } else if (data.occupied && data.occupied[i]) {
                             cell.classList.add('occupied');
                             const tooltip = document.createElement('div');
                             tooltip.className = 'pc-tooltip';
