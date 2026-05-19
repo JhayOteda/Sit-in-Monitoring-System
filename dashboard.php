@@ -863,6 +863,7 @@ try {
             <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
             <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
             <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="lab-software.php" <?php if (basename($_SERVER['PHP_SELF']) === 'lab-software.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Software</a></li>
             <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>

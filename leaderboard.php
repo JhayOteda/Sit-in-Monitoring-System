@@ -121,11 +121,29 @@ if ($role === 'student') {
         
         /* NAVBAR Styles */
         nav { background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 48px; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
-        .nav-brand { color: var(--nav-text); font-size: 0.85rem; font-weight: 600; font-family: 'Merriweather', serif; }
+        .nav-brand { 
+            color: var(--nav-text); 
+            font-size: <?= ($role === 'admin') ? '0.85rem' : '0.95rem' ?>; 
+            font-weight: 600; 
+            font-family: 'Merriweather', serif; 
+        }
         .nav-links { display: flex; align-items: center; list-style: none; gap: 0.1rem; }
-        .nav-links a { color: var(--nav-text); text-decoration: none; font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px; transition: background 0.15s; }
-        .nav-links a:hover { background: rgba(255,255,255,0.14); }
-        .logout-btn { background: var(--brand-1) !important; font-weight: 700 !important; margin-left: 0.25rem; padding: 0.3rem 0.8rem; border-radius: 4px; }
+        .nav-links a { 
+            color: var(--nav-text); 
+            text-decoration: none; 
+            font-size: <?= ($role === 'admin') ? '0.75rem' : '0.9rem' ?>; 
+            padding: <?= ($role === 'admin') ? '0.3rem 0.6rem' : '0.35rem 0.7rem' ?>; 
+            border-radius: 4px; 
+            transition: background 0.15s; 
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.14); }
+        .logout-btn { 
+            background: var(--brand-1) !important; 
+            font-weight: 700 !important; 
+            margin-left: 0.25rem; 
+            padding: <?= ($role === 'admin') ? '0.3rem 0.8rem' : '0.35rem 0.8rem' ?> !important; 
+            border-radius: 4px; 
+        }
         .logout-btn:hover { background: var(--brand-2) !important; }
 
         /* Notification dropdown */
@@ -395,6 +413,7 @@ if ($role === 'student') {
                 <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
                 <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
                 <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+                <li><a href="lab-software.php" <?php if (basename($_SERVER['PHP_SELF']) === 'lab-software.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Software</a></li>
                 <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
                 <li><a href="logout.php" class="logout-btn">Log out</a></li>
             <?php else: ?>

@@ -149,7 +149,9 @@ try {
             --bg-end: #d3e7db;
             --nav-bg: #1f4f3c;
             --nav-text: #edf7f2;
-            --card-bg: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: 1px solid rgba(255, 255, 255, 0.4);
+            --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
             --text-primary: #1f2f27;
             --text-muted: #607367;
             --border-soft: #d0dfd6;
@@ -158,6 +160,12 @@ try {
             --brand-2: #245f45;
             --brand-1-strong: #2a6d4f;
             --brand-2-strong: #1f543d;
+        }
+
+        html.dark-mode {
+            --card-bg: rgba(30, 35, 40, 0.85);
+            --card-border: 1px solid rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -469,8 +477,11 @@ try {
 
         .d-card {
             background: var(--card-bg);
-            border-radius: 6px;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: var(--card-border);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
             overflow: hidden;
         }
 
@@ -701,6 +712,24 @@ try {
             box-shadow: 0 2px 10px rgba(0, 123, 255, 0.4);
             transform: translateY(-2px);
         }
+        html.dark-mode .pc-cell.available {
+            background: rgba(40, 167, 69, 0.15);
+            color: #7dd386;
+            border-color: rgba(40, 167, 69, 0.3);
+        }
+        html.dark-mode .pc-cell.available:hover {
+            background: rgba(40, 167, 69, 0.25);
+        }
+        html.dark-mode .pc-cell.occupied {
+            background: rgba(220, 53, 69, 0.15);
+            color: #ff9a9a;
+            border-color: rgba(220, 53, 69, 0.3);
+        }
+        html.dark-mode .pc-cell.selected {
+            background: rgba(0, 123, 255, 0.25);
+            color: #75b5fe;
+            border-color: #007bff;
+        }
         .pc-cell .pc-tooltip {
             display: none;
             position: absolute;
@@ -767,6 +796,7 @@ try {
             <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
             <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
             <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
+            <li><a href="lab-software.php" <?php if (basename($_SERVER['PHP_SELF']) === 'lab-software.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Software</a></li>
             <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
             <li><a href="logout.php" class="d-logout">Log out</a></li>
         </ul>
@@ -774,7 +804,7 @@ try {
     <div class="d-wrap">
         <?php if (!$reservation_enabled): ?>
             <!-- Disabled Overlay/Message -->
-            <div style="max-width: 600px; margin: 4rem auto; text-align: center; background: #fff; padding: 3rem 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="d-card" style="max-width: 600px; margin: 4rem auto; text-align: center; padding: 3rem 2rem;">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">🚫</div>
                 <h2 style="color: #dc3545; font-family: 'Merriweather', serif; margin-bottom: 1rem;">Reservations are Disabled</h2>
                 <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;">
