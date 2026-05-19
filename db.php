@@ -16,6 +16,18 @@ try {
         $pdo->exec("ALTER TABLE users ALTER COLUMN points SET DEFAULT 0");
     }
 
+    $check_score = $pdo->query("SHOW COLUMNS FROM users LIKE 'score'");
+    if (!$check_score->fetch()) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN score DECIMAL(10,2) DEFAULT 0.00");
+        // Compute and populate initial score for all existing students
+        $pdo->exec("
+            UPDATE users u 
+            SET score = COALESCE(u.points, 0) * 0.50 + 
+                        COALESCE((SELECT SUM(TIMESTAMPDIFF(SECOND, created_at, time_out)) / 3600.0 FROM sit_in_logs WHERE user_id = u.id AND time_out IS NOT NULL), 0) * 0.30 + 
+                        COALESCE((SELECT COUNT(*) FROM sit_in_logs WHERE user_id = u.id AND time_out IS NOT NULL), 0) * 0.20
+        ");
+    }
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS student_tasks (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,

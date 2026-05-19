@@ -104,10 +104,153 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CCS | History</title>
+            <style>
+        /* Profile Dropdown Styles */
+        .profile-dropdown-container {
+            position: relative;
+            margin-left: 0.5rem;
+        }
+        
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.6rem;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .profile-trigger:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--brand-1, #2f7a59);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.8);
+            text-transform: uppercase;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        
+        .profile-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--nav-text, #fff);
+        }
+        
+        .profile-role {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: capitalize;
+        }
+        
+        .profile-caret {
+            margin-left: 0.2rem;
+            color: var(--nav-text, #fff);
+            transition: transform 0.2s;
+        }
+        
+        .profile-dropdown-container.active .profile-caret {
+            transform: rotate(180deg);
+        }
+        
+        .profile-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            min-width: 220px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        
+        html.dark-mode .profile-menu {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .profile-dropdown-container.active .profile-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-primary, #333) !important;
+            text-decoration: none !important;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background 0.15s;
+            cursor: pointer;
+            background: transparent !important;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        .profile-menu-item:hover {
+            background: var(--input-bg, #f4f4f4) !important;
+        }
+        
+        .profile-menu-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted, #666);
+        }
+        
+        .profile-menu-divider {
+            height: 1px;
+            background: var(--border-soft, #eee);
+            margin: 0.4rem 0;
+        }
+        
+        .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .text-danger svg {
+            color: #dc3545 !important;
+        }
+        
+        .theme-item {
+            justify-content: space-between;
+        }
+        
+        .theme-label-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
     </style>
-    <link rel="stylesheet" href="assets/dark-mode.css">
+    <link rel="stylesheet" href="assets/dark-mode.css?v=1779200619">
     <link rel="stylesheet" href="assets/responsive.css">
-    <script src="assets/dark-mode.js" defer></script>
+    <script src="assets/dark-mode.js?v=1779200619" defer></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -735,6 +878,149 @@ try {
             letter-spacing: 0.5px;
             margin-bottom: 0.5rem;
         }
+            <style>
+        /* Profile Dropdown Styles */
+        .profile-dropdown-container {
+            position: relative;
+            margin-left: 0.5rem;
+        }
+        
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.6rem;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .profile-trigger:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--brand-1, #2f7a59);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.8);
+            text-transform: uppercase;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        
+        .profile-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--nav-text, #fff);
+        }
+        
+        .profile-role {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: capitalize;
+        }
+        
+        .profile-caret {
+            margin-left: 0.2rem;
+            color: var(--nav-text, #fff);
+            transition: transform 0.2s;
+        }
+        
+        .profile-dropdown-container.active .profile-caret {
+            transform: rotate(180deg);
+        }
+        
+        .profile-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            min-width: 220px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        
+        html.dark-mode .profile-menu {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .profile-dropdown-container.active .profile-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-primary, #333) !important;
+            text-decoration: none !important;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background 0.15s;
+            cursor: pointer;
+            background: transparent !important;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        .profile-menu-item:hover {
+            background: var(--input-bg, #f4f4f4) !important;
+        }
+        
+        .profile-menu-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted, #666);
+        }
+        
+        .profile-menu-divider {
+            height: 1px;
+            background: var(--border-soft, #eee);
+            margin: 0.4rem 0;
+        }
+        
+        .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .text-danger svg {
+            color: #dc3545 !important;
+        }
+        
+        .theme-item {
+            justify-content: space-between;
+        }
+        
+        .theme-label-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
     </style>
 </head>
 
@@ -769,12 +1055,42 @@ try {
                 </div>
             </li>
             <li><a href="dashboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && !(isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
-            <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
             <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
             <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
             <li><a href="lab-software.php" <?php if (basename($_SERVER['PHP_SELF']) === 'lab-software.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Software</a></li>
             <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
-            <li><a href="logout.php" class="d-logout">Log out</a></li>
+                        <li class="profile-dropdown-container" id="profileDropdownContainer">
+                <div class="profile-trigger" onclick="toggleProfileDropdown(event)">
+                    <div class="profile-avatar">
+                        <?= strtoupper(substr($_SESSION['name'] ?? 'U', 0, 1)) ?>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name"><?= htmlspecialchars($_SESSION['name'] ?? 'User') ?></span>
+                        <span class="profile-role"><?= htmlspecialchars(ucfirst($_SESSION['role'] ?? 'Student')) ?></span>
+                    </div>
+                    <svg class="profile-caret" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="profile-menu" id="profileMenu">
+                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                        <!-- Admin Profile (Optional, can point to settings if exists) -->
+                    <?php else: ?>
+                        <a href="dashboard.php?edit=true" class="profile-menu-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                            Edit Profile
+                        </a>
+                        <div class="profile-menu-divider"></div>
+                    <?php endif; ?>
+                    
+                    <div class="profile-menu-item theme-item">
+                        <div id="darkModeContainer" style="display:flex; justify-content:center; width:100%;"></div>
+                    </div>
+                    <div class="profile-menu-divider"></div>
+                    <a href="logout.php" class="profile-menu-item text-danger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> 
+                        Log out
+                    </a>
+                </div>
+            </li>
         </ul>
     </nav>
     <div class="d-wrap">
@@ -1083,6 +1399,22 @@ try {
                 .catch(error => console.error('Error:', error));
         }
     </script>
+<script>
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const container = document.getElementById('profileDropdownContainer');
+            if (container) {
+                container.classList.toggle('active');
+            }
+        }
+
+        window.addEventListener('click', function(event) {
+            const container = document.getElementById('profileDropdownContainer');
+            if (container && !container.contains(event.target)) {
+                container.classList.remove('active');
+            }
+        });
+</script>
 </body>
 
 </html>

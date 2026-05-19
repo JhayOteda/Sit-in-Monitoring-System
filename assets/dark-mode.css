@@ -51,15 +51,51 @@ html.dark-mode table tr:hover { background: #252d33; }
 html.dark-mode .alert-error { background: #3d2122; color: #ff9a9a; border: 1px solid #6d3434; }
 html.dark-mode .alert-success { background: #1d3a28; color: #7dd386; border: 1px solid #3d6b4d; }
 
-/* Theme toggle UI (pill) */
-.theme-toggle { display:flex; align-items:center; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.18); border-radius:20px; padding:4px; cursor:pointer; transition: all 0.25s ease; margin-left:0.5rem; width:52px; height:28px; position:relative; }
-.theme-toggle-slider { width:22px; height:22px; background: rgba(255,255,255,0.95); border-radius:50%; position:absolute; left:4px; transition:left 0.25s ease; display:flex; align-items:center; justify-content:center; font-size:0.75rem; }
-.theme-toggle.dark .theme-toggle-slider { left:26px; }
-.theme-toggle-icon { position:absolute; font-size:0.9rem; transition:opacity 0.25s ease; }
-.theme-toggle-icon.moon { left:6px; opacity:0; }
-.theme-toggle-icon.sun { right:6px; opacity:1; }
-.theme-toggle.dark .theme-toggle-icon.moon { opacity:1; }
-.theme-toggle.dark .theme-toggle-icon.sun { opacity:0; }
+/* Theme toggle UI (pill) - Custom Light-Mode Friendly Styles */
+.theme-toggle { 
+    display: flex; 
+    align-items: center; 
+    background: #cbd5e1; /* Soft slate gray in light mode */
+    border: 2px solid #94a3b8; 
+    border-radius: 20px; 
+    padding: 4px; 
+    cursor: pointer; 
+    transition: all 0.25s ease; 
+    margin-left: 0.5rem; 
+    width: 52px; 
+    height: 28px; 
+    position: relative; 
+}
+.theme-toggle-slider { 
+    width: 22px; 
+    height: 22px; 
+    background: #ffffff; /* Solid white slider in light mode */
+    border-radius: 50%; 
+    position: absolute; 
+    left: 4px; 
+    transition: left 0.25s ease; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 0.75rem; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.theme-toggle.dark .theme-toggle-slider { left: 26px; }
+.theme-toggle-icon { position: absolute; font-size: 0.9rem; transition: opacity 0.25s ease; }
+.theme-toggle-icon.moon { left: 6px; opacity: 0; }
+.theme-toggle-icon.sun { right: 6px; opacity: 1; }
+.theme-toggle.dark .theme-toggle-icon.moon { opacity: 1; }
+.theme-toggle.dark .theme-toggle-icon.sun { opacity: 0; }
+
+/* Dark mode theme toggle overrides */
+html.dark-mode .theme-toggle {
+    background: rgba(255,255,255,0.12);
+    border: 2px solid rgba(255,255,255,0.18);
+}
+html.dark-mode .theme-toggle-slider {
+    background: rgba(255,255,255,0.95);
+    box-shadow: none;
+}
 
 /* Smooth transitions for color changes */
 body { transition: background 0.25s ease, color 0.25s ease; }

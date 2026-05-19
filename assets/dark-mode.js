@@ -11,25 +11,16 @@
     }
 
     function ensureToggle() {
-        // find an existing nav-links list
-        const navLinks = document.querySelector('.nav-links') || document.querySelector('.d-nav-links') || document.querySelector('nav ul');
-        if (!navLinks) return null;
-
-        // avoid inserting multiple toggles
         const existingToggle = document.getElementById('themeToggle');
-        if (existingToggle) {
-            const existingItem = existingToggle.parentElement;
-            if (existingItem && existingItem.parentElement === navLinks && navLinks.lastElementChild !== existingItem) {
-                navLinks.appendChild(existingItem);
-            }
-            return existingToggle;
-        }
+        if (existingToggle) return existingToggle;
 
-        const li = document.createElement('li');
-        li.style.listStyle = 'none';
-        li.appendChild(createToggle());
-        navLinks.appendChild(li);
-        return document.getElementById('themeToggle');
+        const container = document.getElementById('darkModeContainer');
+        if (container) {
+            const toggle = createToggle();
+            container.appendChild(toggle);
+            return toggle;
+        }
+        return null;
     }
 
     function applySavedTheme(toggleEl) {
@@ -41,7 +32,7 @@
 
     function setup() {
         const toggleEl = ensureToggle();
-        if (!toggleEl) return;
+        if (!toggleEl) return false;
         applySavedTheme(toggleEl);
         toggleEl.addEventListener('click', function(){
             const html = document.documentElement;
@@ -57,9 +48,28 @@
                 location.reload();
             }, 100);
         });
+        return true;
     }
 
-    // Run on DOM ready
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
-    else setup();
+    // Run on DOM ready with robust polling to ensure darkModeContainer is present
+    function init() {
+        let attempts = 0;
+        const maxAttempts = 100; // 1 second maximum wait time
+        
+        const tryInit = function() {
+            attempts++;
+            const success = setup();
+            if (!success && attempts < maxAttempts) {
+                setTimeout(tryInit, 10);
+            }
+        };
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryInit);
+        } else {
+            tryInit();
+        }
+    }
+    
+    init();
 })();

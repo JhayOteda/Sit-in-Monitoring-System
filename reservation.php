@@ -6,7 +6,17 @@ if (!isset($_SESSION["user_id"])) {
 }
 require 'db.php';
 $user_id = $_SESSION["user_id"];
-$success = $error = "";
+
+$success = "";
+$error = "";
+if (isset($_SESSION["success"])) {
+    $success = $_SESSION["success"];
+    unset($_SESSION["success"]);
+}
+if (isset($_SESSION["error"])) {
+    $error = $_SESSION["error"];
+    unset($_SESSION["error"]);
+}
 
 // Check if reservation is enabled
 $reservation_enabled = true;
@@ -62,23 +72,40 @@ try {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $date = trim($_POST["date"] ?? "");
-    $time_in = trim($_POST["time_in"] ?? "");
-    $purpose = trim($_POST["purpose"] ?? "");
-    $lab_room = trim($_POST["lab_room"] ?? "");
-    $pc_number = isset($_POST["pc_number"]) && $_POST["pc_number"] !== "" ? intval($_POST["pc_number"]) : null;
-    
-    if (empty($date) || empty($time_in) || empty($purpose) || empty($lab_room) || !$pc_number) {
-        $error = "Please fill in all fields and select a PC.";
-    } else {
+    if (isset($_POST["cancel_reservation"]) && isset($_POST["reservation_id"])) {
+        $res_id = intval($_POST["reservation_id"]);
         try {
-            $stmt = $pdo->prepare("INSERT INTO reservations (user_id, date, time_in, purpose, lab_room, pc_number, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW())");
-            $stmt->execute([$user_id, $date, $time_in, $purpose, $lab_room, $pc_number]);
-            $success = "Reservation submitted successfully! Status: Pending";
+            $stmt = $pdo->prepare("UPDATE reservations SET status = 'Cancelled' WHERE id = ? AND user_id = ? AND status = 'Pending'");
+            $stmt->execute([$res_id, $user_id]);
+            if ($stmt->rowCount() > 0) {
+                $_SESSION["success"] = "Reservation cancelled successfully.";
+            } else {
+                $_SESSION["error"] = "Could not cancel reservation or reservation is already processed/cancelled.";
+            }
         } catch (Exception $e) {
-            $error = "Error: " . $e->getMessage();
+            $_SESSION["error"] = "Error cancelling reservation: " . $e->getMessage();
+        }
+    } else {
+        $date = trim($_POST["date"] ?? "");
+        $time_in = trim($_POST["time_in"] ?? "");
+        $purpose = trim($_POST["purpose"] ?? "");
+        $lab_room = trim($_POST["lab_room"] ?? "");
+        $pc_number = isset($_POST["pc_number"]) && $_POST["pc_number"] !== "" ? intval($_POST["pc_number"]) : null;
+        
+        if (empty($date) || empty($time_in) || empty($purpose) || empty($lab_room) || !$pc_number) {
+            $_SESSION["error"] = "Please fill in all fields and select a PC.";
+        } else {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO reservations (user_id, date, time_in, purpose, lab_room, pc_number, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'Pending', NOW())");
+                $stmt->execute([$user_id, $date, $time_in, $purpose, $lab_room, $pc_number]);
+                $_SESSION["success"] = "Reservation submitted successfully! Status: Pending";
+            } catch (Exception $e) {
+                $_SESSION["error"] = "Error: " . $e->getMessage();
+            }
         }
     }
+    header("Location: reservation.php");
+    exit;
 }
 
 $reservations = [];
@@ -756,10 +783,154 @@ try {
         .pc-grid-status strong {
             color: var(--brand-1);
         }
+            <style>
+        /* Profile Dropdown Styles */
+        .profile-dropdown-container {
+            position: relative;
+            margin-left: 0.5rem;
+        }
+        
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.6rem;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .profile-trigger:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .profile-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--brand-1, #2f7a59);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.8);
+            text-transform: uppercase;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        
+        .profile-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--nav-text, #fff);
+        }
+        
+        .profile-role {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: capitalize;
+        }
+        
+        .profile-caret {
+            margin-left: 0.2rem;
+            color: var(--nav-text, #fff);
+            transition: transform 0.2s;
+        }
+        
+        .profile-dropdown-container.active .profile-caret {
+            transform: rotate(180deg);
+        }
+        
+        .profile-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--card-bg, #fff);
+            border-radius: 12px;
+            min-width: 220px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        
+        html.dark-mode .profile-menu {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .profile-dropdown-container.active .profile-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-primary, #333) !important;
+            text-decoration: none !important;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background 0.15s;
+            cursor: pointer;
+            background: transparent !important;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        .profile-menu-item:hover {
+            background: var(--input-bg, #f4f4f4) !important;
+        }
+        
+        .profile-menu-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted, #666);
+        }
+        
+        .profile-menu-divider {
+            height: 1px;
+            background: var(--border-soft, #eee);
+            margin: 0.4rem 0;
+        }
+        
+        .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .text-danger svg {
+            color: #dc3545 !important;
+        }
+        
+        .theme-item {
+            justify-content: space-between;
+        }
+        
+        .theme-label-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
     </style>
-    <link rel="stylesheet" href="assets/dark-mode.css">
+    <link rel="stylesheet" href="assets/dark-mode.css?v=1779200619">
     <link rel="stylesheet" href="assets/responsive.css">
-    <script src="assets/dark-mode.js" defer></script>
+    <script src="assets/dark-mode.js?v=1779200619" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -793,12 +964,42 @@ try {
                 </div>
             </li>
             <li><a href="dashboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && !(isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Home</a></li>
-            <li><a href="dashboard.php?edit=true" <?php if (basename($_SERVER['PHP_SELF']) === 'dashboard.php' && (isset($_GET['edit']) && $_GET['edit'] === 'true')) echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Edit Profile</a></li>
             <li><a href="history.php" <?php if (basename($_SERVER['PHP_SELF']) === 'history.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>History</a></li>
             <li><a href="reservation.php" <?php if (basename($_SERVER['PHP_SELF']) === 'reservation.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Reservation</a></li>
             <li><a href="lab-software.php" <?php if (basename($_SERVER['PHP_SELF']) === 'lab-software.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Lab Software</a></li>
             <li><a href="leaderboard.php" <?php if (basename($_SERVER['PHP_SELF']) === 'leaderboard.php') echo 'style="background: rgba(255,255,255,0.15)"'; ?>>Leaderboard</a></li>
-            <li><a href="logout.php" class="d-logout">Log out</a></li>
+                        <li class="profile-dropdown-container" id="profileDropdownContainer">
+                <div class="profile-trigger" onclick="toggleProfileDropdown(event)">
+                    <div class="profile-avatar">
+                        <?= strtoupper(substr($_SESSION['name'] ?? 'U', 0, 1)) ?>
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name"><?= htmlspecialchars($_SESSION['name'] ?? 'User') ?></span>
+                        <span class="profile-role"><?= htmlspecialchars(ucfirst($_SESSION['role'] ?? 'Student')) ?></span>
+                    </div>
+                    <svg class="profile-caret" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="profile-menu" id="profileMenu">
+                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                        <!-- Admin Profile (Optional, can point to settings if exists) -->
+                    <?php else: ?>
+                        <a href="dashboard.php?edit=true" class="profile-menu-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                            Edit Profile
+                        </a>
+                        <div class="profile-menu-divider"></div>
+                    <?php endif; ?>
+                    
+                    <div class="profile-menu-item theme-item">
+                        <div id="darkModeContainer" style="display:flex; justify-content:center; width:100%;"></div>
+                    </div>
+                    <div class="profile-menu-divider"></div>
+                    <a href="logout.php" class="profile-menu-item text-danger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> 
+                        Log out
+                    </a>
+                </div>
+            </li>
         </ul>
     </nav>
     <div class="d-wrap">
@@ -920,6 +1121,7 @@ try {
                                 <th>Lab Room</th>
                                 <th>PC #</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -933,6 +1135,27 @@ try {
                                     <td><?= $r["pc_number"] ? 'PC ' . htmlspecialchars($r["pc_number"]) : 'N/A' ?></td>
                                     <td><span
                                             class="badge badge-<?= strtolower($r['status']) ?>"><?= htmlspecialchars($r["status"]) ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if ($r["status"] === "Pending"): ?>
+                                            <form method="POST" action="reservation.php" style="display:inline;" onsubmit="return confirmCancel(event, this);">
+                                                <input type="hidden" name="cancel_reservation" value="1">
+                                                <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                                                <button type="submit" style="
+                                                    background: #fde8e8;
+                                                    color: #a01a1a;
+                                                    border: 1px solid #f5b7b7;
+                                                    padding: 0.2rem 0.6rem;
+                                                    border-radius: 4px;
+                                                    font-size: 0.72rem;
+                                                    font-weight: 700;
+                                                    cursor: pointer;
+                                                    transition: all 0.2s;
+                                                " onmouseover="this.style.background='#fcd3d3'" onmouseout="this.style.background='#fde8e8'">Cancel</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">—</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -1147,7 +1370,41 @@ try {
                     container.innerHTML = '<div style="color:#a01a1a;">Error loading PCs</div>';
                 });
         }
+
+        function confirmCancel(event, form) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Cancel Reservation?',
+                text: "Are you sure you want to cancel this laboratory reservation?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, cancel it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
+        }
     </script>
+<script>
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            const container = document.getElementById('profileDropdownContainer');
+            if (container) {
+                container.classList.toggle('active');
+            }
+        }
+
+        window.addEventListener('click', function(event) {
+            const container = document.getElementById('profileDropdownContainer');
+            if (container && !container.contains(event.target)) {
+                container.classList.remove('active');
+            }
+        });
+</script>
 </body>
 
 </html>
